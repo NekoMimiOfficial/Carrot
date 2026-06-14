@@ -14,3 +14,15 @@ class Circle {
 
 let c = new Circle(5);
 print(c.area());
+
+let i = 0;
+while (i < 5) {
+    print(i);
+    i = i + 1;
+}
+
+if (c.area() > 50) {
+    print("big cirlcle!");
+} else {
+    print("small circle!");
+}

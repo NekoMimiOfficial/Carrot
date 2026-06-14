@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -62,25 +64,25 @@ void runFile(const std::string &path) {
 
 void runREPL() {
   std::cout
-  << "Carrot 1.0.0 (main, Jun 11 2026, 21:58:32) [GCC 13.3.0] on linux\n";
+      << "Carrot 1.0.0 (main, Jun 11 2026, 21:58:32) [GCC 13.3.0] on linux\n";
   std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n";
 
-  std::string line;
-  while (true) {
-    std::cout << ">> ";
-    std::cout.flush();
-    if (!std::getline(std::cin, line)) {
-      std::cout << "\n";
-      break;
+  char *rawInput = nullptr;
+
+  while ((rawInput = readline(">> ")) != nullptr) {
+    std::string input(rawInput);
+    free(rawInput);
+
+    if (!input.empty()) {
+      if (input == "exit")
+        break;
+
+      add_history(input.c_str());
+      runSource(input, true);
     }
-    if (line == "exit" || line == "quit")
-      break;
-    if (line.empty())
-      continue;
-    runSource(line, true);
   }
 
-  std::cout << "ikanaide~ qwq!\n";
+  std::cout << "See you next time!\n";
 }
 
 int main(int argc, char *argv[]) {
@@ -89,8 +91,9 @@ int main(int argc, char *argv[]) {
   } else if (argc == 2) {
     runFile(argv[1]);
   } else {
-    std::cerr << "Usage: carrot [script.nin]\n";
-    std::cerr << "       carrot              (starts the REPL)\n";
+    std::cerr
+        << "This program takes 0 or 1 arguments\nRun it without an argument to "
+           "open the interactive REPL\nPass a Ninjin script to run it.";
     return 1;
   }
 

@@ -7,6 +7,7 @@ option(BUILD_VITA "Build for PS Vita" OFF)
 option(BUILD_LINUX "Build for Linux" ON)
 option(BUILD_MAC "Build for DARWIN" OFF)
 option(BUILD_WIN "Build for MicroShaft WindBlows" OFF)
+option(BUILD_CLI "Ninjin CLI only" OFF)
 
 include_directories(head)
 
@@ -78,26 +79,34 @@ if(BUILD_VITA)
   )
 
 elseif (BUILD_LINUX)
-  message(STATUS "Building for PC (Linux)")
+    find_package(SDL2 REQUIRED)
+    find_package(CURL REQUIRED)
+    
+    file(GLOB_RECURSE PLATFORM_SRC src/linux/*.cpp)
 
-  find_package(SDL2 REQUIRED)
-  find_package(CURL REQUIRED)
+  if (BUILD_CLI)
+    message(STATUS "Building for PC (Linux) (CLI only)")
+    file(GLOB_RECURSE RUNTIME_SRC src/cli/*.cpp)
 
-  file(GLOB_RECURSE PLATFORM_SRC src/linux/*.cpp)
+    add_executable(${PROJECT_NAME}-cli
+      ${NOARCH_SRC}
+      ${PLATFORM_SRC}
+      ${RUNTIME_SRC}
+    )
 
-  add_executable(${PROJECT_NAME}
-    ${NOARCH_SRC}
-    ${PLATFORM_SRC}
-  )
+    pkg_check_modules(READLINE REQUIRED readline)
 
-  target_include_directories(${PROJECT_NAME} PRIVATE
-    ${SDL2_INCLUDE_DIRS}
-  )
+    target_include_directories(${PROJECT_NAME}-cli PRIVATE
+      ${SDL2_INCLUDE_DIRS}
+      ${READLINE_INCLUDE_DIRS}
+    )
 
-  target_link_libraries(${PROJECT_NAME}
-    SDL2
-    SDL2_image
-    CURL::libcurl
-  )
+    target_link_libraries(${PROJECT_NAME}-cli
+      SDL2
+      SDL2_image
+      CURL::libcurl
+      ${READLINE_LIBRARIES}
+    )
+  endif()
 
 endif()
