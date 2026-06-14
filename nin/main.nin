@@ -1,0 +1,16 @@
+let math = import("math.nin");
+print(math.square(4));
+print(math.PI);
+
+class Circle {
+    fun init(r) {
+        this.radius = r;
+    }
+    fun area() {
+        let pi = import("math.nin").PI;
+        return pi * this.radius * this.radius;
+    }
+}
+
+let c = new Circle(5);
+print(c.area());
