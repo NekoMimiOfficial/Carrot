@@ -6,9 +6,8 @@
 #include "value.h"
 #include <chrono>
 #include <cstdlib>
-#include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 struct ClockFn : NinCallable {
   int arity() override { return 0; }
@@ -110,36 +109,6 @@ struct PopFn : NinCallable {
   }
 };
 
-struct SqrtFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "sqrt"; }
-  Value call(std::vector<Value> args) override {
-    if (!std::holds_alternative<double>(args[0]))
-      throw std::runtime_error("sqrt(): argument must be a number.");
-    return std::sqrt(std::get<double>(args[0]));
-  }
-};
-
-struct AbsFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "abs"; }
-  Value call(std::vector<Value> args) override {
-    if (!std::holds_alternative<double>(args[0]))
-      throw std::runtime_error("abs(): argument must be a number.");
-    return std::abs(std::get<double>(args[0]));
-  }
-};
-
-struct FloorFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "floor"; }
-  Value call(std::vector<Value> args) override {
-    if (!std::holds_alternative<double>(args[0]))
-      throw std::runtime_error("floor(): argument must be a number.");
-    return std::floor(std::get<double>(args[0]));
-  }
-};
-
 struct InputFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "input"; }
@@ -163,17 +132,6 @@ struct SystemFn : NinCallable {
   }
 };
 
-struct GetFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "get"; }
-  Value call(std::vector<Value> args) override {
-    if (!(std::holds_alternative<std::string>(args[0]))) {
-      throw std::runtime_error("get(): argument must be a string.");
-    }
-    return doGetRequest(valueToString(args[0]));
-  }
-};
-
 struct ImportFn : NinCallable {
   Interpreter *interp;
   std::string callerDir;
@@ -184,34 +142,11 @@ struct ImportFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "import"; }
 
-  Value call(std::vector<Value> args) override {
-    if (!std::holds_alternative<std::string>(args[0]))
-      throw std::runtime_error("import(): argument must be a string path.");
+  Value call(std::vector<Value> args) override;
+};
 
-    std::string rel = std::get<std::string>(args[0]);
-    std::filesystem::path path = std::filesystem::path(callerDir) / rel;
-
-    std::ifstream file(path);
-    if (!file.is_open())
-      throw std::runtime_error("import(): cannot open '" + path.string() +
-                               "'.");
-
-    std::ostringstream ss;
-    ss << file.rdbuf();
-    std::string source = ss.str();
-
-    Lexer modLex(source);
-    auto tokens = modLex.tokenize();
-    Parser modParser(std::move(tokens));
-    auto stmts = modParser.parse();
-
-    auto mod = std::make_shared<NinModule>();
-    mod->sourcePath = path.string();
-    mod->ast = std::move(stmts);
-
-    auto modEnv = std::make_shared<Environment>(interp->globals);
-    interp->executeBlock(mod->ast, modEnv);
-    mod->members = modEnv->exportAll();
-    return mod;
-  }
+struct LoadModuleFn : NinCallable {
+  int arity() override { return 1; }
+  std::string name() override { return "loadmodule"; }
+  Value call(std::vector<Value> args) override;
 };

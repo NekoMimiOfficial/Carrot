@@ -1,0 +1,9 @@
+struct {
+  short maj      = 1;
+  short min      = 0;
+  short fix      = 0;
+
+  const char *codename = "Ragdoll";
+  const char *gccver   = "@GCC_VERSION@";
+  const char *date     = "@COMPILE_DATE@";
+} AppVer;

@@ -1,6 +1,8 @@
 #include "interpreter.h"
 #include "lexer.h"
+#include "meta.cpp"
 #include "parser.h"
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -63,13 +65,14 @@ void runFile(const std::string &path) {
 }
 
 void runREPL() {
-  std::cout
-      << "Carrot 1.0.0 (main, Jun 11 2026, 21:58:32) [GCC 13.3.0] on linux\n";
-  std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n";
+  std::cout << "Carrot " << AppVer.maj << "." << AppVer.min << "." << AppVer.fix
+            << " [" << AppVer.codename << "] (main, " << AppVer.date << ") [GCC "
+            << AppVer.gccver << "] on linux\n";
+  std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n\n";
 
   char *rawInput = nullptr;
 
-  while ((rawInput = readline(">> ")) != nullptr) {
+  while ((rawInput = readline(">>> ")) != nullptr) {
     std::string input(rawInput);
     free(rawInput);
 
@@ -86,6 +89,8 @@ void runREPL() {
 }
 
 int main(int argc, char *argv[]) {
+  system("mkdir -p ~/.local/lib/carrot/modules");
+  system("mkdir -p ~/.local/lib/carrot/CAPI");
   if (argc == 1) {
     runREPL();
   } else if (argc == 2) {

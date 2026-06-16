@@ -22,6 +22,9 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | Fn Name | Arguments | Description |
 | --------------- | --------------- | --------------- |
 | `import()` | {string} | Imports a nin module. |
+| `loadmodule()` | {string} | Imports an external C++API module shared object. |
+| `input()` | {string} | Asks the user to input data, returns a string, accepts an input prompt. |
+| `system()` | {string} | Executes a command on the system shell, returns the exit status code. |
 | `clock()` | {} | Returns the unix epoch time. |
 | `str()` | {AnyType} | Converts any viable type to a string. |
 | `num()` | {string|float} | Converts any viable type to an integer. |
@@ -29,9 +32,3 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `len()` | {string|array} | Returns the length of an array or string. |
 | `push()` | {array, AnyType} | Pushes a value to the end of an array. |
 | `pop()` | {array} | Pops the last value off an array. |
-| `sqrt()` | {float} | Squares the provided number. |
-| `abs()` | {float} | Returns absolute value of the provided number. |
-| `floor()` | {float} | Floors the provided number. |
-| `input()` | {string} | Asks the user to input data, returns a string, accepts an input prompt. |
-| `system()` | {string} | Executes a command on the system shell, returns the exit status code. |
-| `get()` | {string} | Runs a GET request to the specified URL, returns the data back from the URL. |

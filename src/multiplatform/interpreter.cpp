@@ -43,20 +43,19 @@ Interpreter::Interpreter(std::string sourceDir) {
     globals->define(fn->name(), fn);
   };
 
+  reg(std::make_shared<LoadModuleFn>());
+  reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
+
+  reg(std::make_shared<InputFn>());
+  reg(std::make_shared<SystemFn>());
   reg(std::make_shared<ClockFn>());
+
   reg(std::make_shared<StrFn>());
   reg(std::make_shared<NumFn>());
   reg(std::make_shared<TypeFn>());
   reg(std::make_shared<LenFn>());
   reg(std::make_shared<PushFn>());
   reg(std::make_shared<PopFn>());
-  reg(std::make_shared<SqrtFn>());
-  reg(std::make_shared<AbsFn>());
-  reg(std::make_shared<FloorFn>());
-  reg(std::make_shared<InputFn>());
-  reg(std::make_shared<SystemFn>());
-  reg(std::make_shared<GetFn>());
-  reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {

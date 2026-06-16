@@ -14,6 +14,11 @@ Your main concern wouldn't be the engine itself or compiling it, you can get a b
 the UI is written in XML (technically very close to HTML but with a couple of changes) and you can style in CSS, a list of the supported features is available at the DOCs section  
 We also have docs for Ninjin and examples too!  
 
+# Is Carrot extensible?  
+Yes! Carrot has it's own modules both in Ninjin and a custom C++ API!  
+You can use the builtin modules or download and load community modules or even make your own!  
+The process is really simple actually and we provide examples for everything :3  
+
 # Can I load an app OTA?  
 You *can* but make sure nothing goes wrong... Carrot is unsandboxed so any app you run you have to trust the developer or read the source  
 We can sandbox the engine but there is no point in doing so as people can just bake in malicious code into any app, here you at least have the ability to read the source `app.nin` file  

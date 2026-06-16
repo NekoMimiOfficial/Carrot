@@ -194,27 +194,26 @@ struct SetExpr : Expr {
 };
 
 struct ClassStmt : Stmt {
-    Token name;
-    std::vector<std::unique_ptr<FunctionStmt>> methods;
+  Token name;
+  std::vector<std::unique_ptr<FunctionStmt>> methods;
 
-    ClassStmt(Token name,
-              std::vector<std::unique_ptr<FunctionStmt>> methods)
-        : name(std::move(name)), methods(std::move(methods)) {}
+  ClassStmt(Token name, std::vector<std::unique_ptr<FunctionStmt>> methods)
+      : name(std::move(name)), methods(std::move(methods)) {}
 };
 
 struct NewExpr : Expr {
-    Token keyword;
-    Token className;
-    std::vector<ExprPtr> arguments;
+  Token keyword;
+  Token className;
+  std::vector<ExprPtr> arguments;
 
-    NewExpr(Token keyword, Token className, std::vector<ExprPtr> arguments)
-        : keyword(std::move(keyword)), className(std::move(className)),
-          arguments(std::move(arguments)) {}
+  NewExpr(Token keyword, Token className, std::vector<ExprPtr> arguments)
+      : keyword(std::move(keyword)), className(std::move(className)),
+        arguments(std::move(arguments)) {}
 };
 
 struct ThisExpr : Expr {
-    Token keyword;
-    explicit ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
+  Token keyword;
+  explicit ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
 };
 
 struct BreakStmt : Stmt {};
