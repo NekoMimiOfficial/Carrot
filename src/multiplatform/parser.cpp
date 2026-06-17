@@ -13,6 +13,10 @@ std::vector<StmtPtr> Parser::parse() {
 StmtPtr Parser::declaration() {
   if (match({TokenType::LET}))
     return varDeclaration();
+  if (match({TokenType::ASYNC})) {
+    consume(TokenType::FUN, "Expected 'fun' after 'async'.");
+    return asyncFunctionDeclaration();
+  }
   if (match({TokenType::FUN}))
     return funDeclaration();
   if (match({TokenType::CLASS}))
@@ -55,6 +59,30 @@ StmtPtr Parser::funDeclaration() {
 
   return std::make_unique<FunctionStmt>(std::move(name), std::move(params),
                                         std::move(bodyBlock->statements));
+}
+
+StmtPtr Parser::asyncFunctionDeclaration() {
+  Token name = consume(TokenType::IDENTIFIER, "Expected function name.");
+  consume(TokenType::LPAREN, "Expected '(' after function name.");
+
+  std::vector<Token> params;
+  if (!check(TokenType::RPAREN)) {
+    do {
+      params.push_back(
+          consume(TokenType::IDENTIFIER, "Expected parameter name."));
+    } while (match({TokenType::COMMA}));
+  }
+  consume(TokenType::RPAREN, "Expected ')' after parameters.");
+  consume(TokenType::LBRACE, "Expected '{' before function body.");
+
+  bool prev = insideAsync;
+  insideAsync = true;
+  auto bodyBlock =
+      std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(block().release()));
+  insideAsync = prev;
+
+  return std::make_unique<AsyncFunctionStmt>(std::move(name), std::move(params),
+                                             std::move(bodyBlock->statements));
 }
 
 StmtPtr Parser::statement() {
@@ -385,6 +413,32 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::THIS}))
     return std::make_unique<ThisExpr>(previous());
+
+  if (match({TokenType::COROUTINE_KW})) {
+    Token kw = previous();
+    Token fnName = consume(TokenType::IDENTIFIER,
+                           "Expected function name after 'coroutine'.");
+    consume(TokenType::LPAREN, "Expected '(' after function name.");
+    std::vector<ExprPtr> args;
+    if (!check(TokenType::RPAREN)) {
+      do {
+        args.push_back(expression());
+      } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RPAREN, "Expected ')'.");
+    return std::make_unique<CoroutineExpr>(std::move(kw), std::move(fnName),
+                                           std::move(args));
+  }
+
+  if (match({TokenType::AWAIT})) {
+    if (!insideAsync)
+      throw std::runtime_error(
+          "'await' used outside an async function. (line " +
+          std::to_string(previous().line) + ")");
+    Token kw = previous();
+    ExprPtr val = call();
+    return std::make_unique<AwaitExpr>(std::move(kw), std::move(val));
+  }
 
   throw std::runtime_error("Expected expression at line " +
                            std::to_string(peek().line) +

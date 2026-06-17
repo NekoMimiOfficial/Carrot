@@ -216,5 +216,29 @@ struct ThisExpr : Expr {
   explicit ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
 };
 
+struct AsyncFunctionStmt : FunctionStmt {
+  AsyncFunctionStmt(Token name, std::vector<Token> params,
+                    std::vector<StmtPtr> body)
+      : FunctionStmt(std::move(name), std::move(params), std::move(body)) {}
+};
+
+struct CoroutineExpr : Expr {
+  Token keyword;
+  Token fnName;
+  std::vector<ExprPtr> arguments;
+
+  CoroutineExpr(Token keyword, Token fnName, std::vector<ExprPtr> arguments)
+      : keyword(std::move(keyword)), fnName(std::move(fnName)),
+        arguments(std::move(arguments)) {}
+};
+
+struct AwaitExpr : Expr {
+  Token keyword;
+  ExprPtr value;
+
+  AwaitExpr(Token keyword, ExprPtr value)
+      : keyword(std::move(keyword)), value(std::move(value)) {}
+};
+
 struct BreakStmt : Stmt {};
 struct ContinueStmt : Stmt {};

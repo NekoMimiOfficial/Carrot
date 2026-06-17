@@ -53,6 +53,10 @@ enum class TokenType {
   NEW,
   THIS,
 
+  ASYNC,
+  COROUTINE_KW,
+  AWAIT,
+
   EOF_TOKEN
 };
 

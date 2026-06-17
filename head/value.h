@@ -1,6 +1,8 @@
 #pragma once
 #include "ast.h"
+#include <atomic>
 #include <cmath>
+#include <functional>
 #include <iomanip>
 #include <memory>
 #include <sstream>
@@ -14,12 +16,13 @@ struct NinArray;
 struct NinModule;
 struct NinClass;
 struct NinInstance;
+struct NinCoroutine;
 
 using Value =
     std::variant<std::monostate, double, std::string, bool,
                  std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
                  std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
-                 std::shared_ptr<NinModule>>;
+                 std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>>;
 
 struct NinArray {
   std::vector<Value> elements;
@@ -41,10 +44,10 @@ struct NinModule {
   std::unordered_map<std::string, Value> members;
   void *handle = nullptr;
 
-    NinModule() = default;
+  NinModule() = default;
 
-    NinModule(std::string path, std::unordered_map<std::string, Value> members)
-        : sourcePath(std::move(path)), members(std::move(members)) {}
+  NinModule(std::string path, std::unordered_map<std::string, Value> members)
+      : sourcePath(std::move(path)), members(std::move(members)) {}
 };
 
 struct NinClass {
@@ -60,6 +63,19 @@ struct NinInstance {
 
   explicit NinInstance(std::shared_ptr<NinClass> k) : klass(std::move(k)) {}
 };
+
+struct NinCoroutine {
+  enum class State { CREATED, RUNNING, DONE };
+
+  std::atomic<State> state{State::CREATED};
+  Value returnValue;
+  std::function<Value()> task;
+  std::shared_ptr<void> platformHandle;
+
+  explicit NinCoroutine(std::function<Value()> t) : task(std::move(t)) {}
+};
+
+// Helpers go below, stop looking where the divider is girl...
 
 inline std::string valueToString(const Value &val) {
   if (std::holds_alternative<std::monostate>(val))
@@ -125,12 +141,17 @@ inline std::string valueToString(const Value &val) {
            std::get<std::shared_ptr<NinInstance>>(val)->klass->className + ">";
   }
 
+  if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(val))
+    return "<coroutine>";
+
   return "<unknown>";
 }
 
 inline bool isTruthy(const Value &val) {
   if (std::holds_alternative<std::monostate>(val))
     return false;
+  if (std::holds_alternative<double>(val))
+    return (std::get<double>(val) == 0)? false : true;
   if (std::holds_alternative<bool>(val))
     return std::get<bool>(val);
   return true;

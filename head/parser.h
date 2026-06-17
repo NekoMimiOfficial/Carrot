@@ -28,6 +28,7 @@ private:
   StmtPtr block();
   StmtPtr expressionStatement();
   StmtPtr classDeclaration();
+  StmtPtr asyncFunctionDeclaration();
 
   ExprPtr expression();
   ExprPtr assignment();
@@ -43,6 +44,7 @@ private:
   ExprPtr newExpression();
 
   bool check(TokenType type);
+  bool insideAsync = false;
   bool match(std::initializer_list<TokenType> types);
   Token advance();
   Token peek();

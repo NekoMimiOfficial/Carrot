@@ -10,6 +10,8 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"print", TokenType::PRINT},     {"and", TokenType::AND},
     {"or", TokenType::OR},           {"class", TokenType::CLASS},
     {"new", TokenType::NEW},         {"this", TokenType::THIS},
+    {"async", TokenType::ASYNC},     {"coroutine", TokenType::COROUTINE_KW},
+    {"await", TokenType::AWAIT},
 };
 
 Lexer::Lexer(const std::string &source) : source(source) {}

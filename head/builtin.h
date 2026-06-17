@@ -66,6 +66,8 @@ struct TypeFn : NinCallable {
       return std::string("class");
     if (std::holds_alternative<std::shared_ptr<NinInstance>>(v))
       return std::string("instance");
+    if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(v))
+      return std::string("coroutine");
     return std::string("unknown");
   }
 };

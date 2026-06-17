@@ -1,14 +1,18 @@
 #include "interpreter.h"
 #include "builtin.h"
+#include "coroutine.h"
 #include "value.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 
+extern thread_local bool insideCoroutine;
+
 struct NinFunction : NinCallable {
   FunctionStmt *decl;
   std::shared_ptr<Environment> closure;
   Interpreter *interp;
+  bool isAsync = false;
 
   NinFunction(FunctionStmt *decl, std::shared_ptr<Environment> closure,
               Interpreter *interp)
@@ -136,6 +140,11 @@ void Interpreter::execute(Stmt *stmt) {
       throw;
     }
     env = prevEnv;
+
+  } else if (auto *s = dynamic_cast<AsyncFunctionStmt *>(stmt)) {
+    auto fn = std::make_shared<NinFunction>(s, env, this);
+    fn->isAsync = true;
+    env->define(s->name.lexeme, fn);
 
   } else if (auto *s = dynamic_cast<FunctionStmt *>(stmt)) {
 
@@ -463,6 +472,61 @@ Value Interpreter::evaluate(Expr *expr) {
 
   } else if (auto *e = dynamic_cast<ThisExpr *>(expr)) {
     return env->get("this");
+  } else if (auto *e = dynamic_cast<CoroutineExpr *>(expr)) {
+    Value fnVal = env->get(e->fnName.lexeme);
+    if (!std::holds_alternative<std::shared_ptr<NinCallable>>(fnVal))
+      throw std::runtime_error("coroutine: '" + e->fnName.lexeme +
+                               "' is not a function.");
+
+    auto fn = std::get<std::shared_ptr<NinCallable>>(fnVal);
+    auto *ninFn = dynamic_cast<NinFunction *>(fn.get());
+    if (!ninFn || !ninFn->isAsync)
+      throw std::runtime_error("coroutine: '" + e->fnName.lexeme +
+                               "' is not an async function.");
+
+    std::vector<Value> args;
+    for (auto &arg : e->arguments)
+      args.push_back(evaluate(arg.get()));
+
+    auto coro = std::make_shared<NinCoroutine>(
+        [fn, args]() mutable { return fn->call(args); });
+
+    auto klass = std::make_shared<NinClass>("coroutine");
+    auto inst = std::make_shared<NinInstance>(klass);
+
+    struct RunFn : NinCallable {
+      std::shared_ptr<NinCoroutine> coro;
+      explicit RunFn(std::shared_ptr<NinCoroutine> c) : coro(std::move(c)) {}
+      int arity() override { return 0; }
+      std::string name() override { return "run"; }
+      Value call(std::vector<Value>) override {
+        coroutineRun(coro);
+        return std::monostate{};
+      }
+    };
+
+    struct YieldFn : NinCallable {
+      std::shared_ptr<NinCoroutine> coro;
+      explicit YieldFn(std::shared_ptr<NinCoroutine> c) : coro(std::move(c)) {}
+      int arity() override { return 1; }
+      std::string name() override { return "yield"; }
+      Value call(std::vector<Value> args) override {
+        if (coro->state == NinCoroutine::State::DONE)
+          return coro->returnValue;
+        return args[0];
+      }
+    };
+
+    inst->fields["run"] = std::make_shared<RunFn>(coro);
+    inst->fields["yield"] = std::make_shared<YieldFn>(coro);
+    return inst;
+
+  } else if (auto *e = dynamic_cast<AwaitExpr *>(expr)) {
+    if (!insideCoroutine)
+      throw std::runtime_error(
+          "'await' used outside a running coroutine. (line " +
+          std::to_string(e->keyword.line) + ")");
+    return evaluate(e->value.get());
   }
 
   return std::monostate{};

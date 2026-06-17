@@ -1,6 +1,6 @@
 #include "builtin.h"
 #include "value.h"
-#include "fs.cpp"
+#include "fs.h"
 #include <cstdlib>
 #include <dlfcn.h>
 #include <iterator>
