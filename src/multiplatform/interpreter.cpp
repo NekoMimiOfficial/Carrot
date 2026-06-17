@@ -67,6 +67,10 @@ Interpreter::Interpreter(std::string sourceDir,
   reg(std::make_shared<LenFn>());
   reg(std::make_shared<PushFn>());
   reg(std::make_shared<PopFn>());
+
+  ImportFn bootstrapImporter(this, sourceDir);
+  Value bootstrapMod = bootstrapImporter.call({std::string("@bootstrap.nin")});
+  globals->define("nin", bootstrapMod);
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {
@@ -447,10 +451,9 @@ Value Interpreter::evaluate(Expr *expr) {
         std::to_string(e->name.line) + ")");
 
   } else if (auto *e = dynamic_cast<NewExpr *>(expr)) {
-    Value classVal = env->get(e->className.lexeme);
+    Value classVal = evaluate(e->classExpr.get());
     if (!std::holds_alternative<std::shared_ptr<NinClass>>(classVal))
-      throw std::runtime_error("'" + e->className.lexeme +
-                               "' is not a class. (line " +
+      throw std::runtime_error("Expression after 'new' is not a class. (line " +
                                std::to_string(e->keyword.line) + ")");
 
     auto klass = std::get<std::shared_ptr<NinClass>>(classVal);

@@ -1,0 +1,34 @@
+class Stack {
+    fun init() {
+        this.items = [];
+    }
+    fun push(item) {
+        push(this.items, item);
+    }
+    fun pop() {
+        return pop(this.items);
+    }
+    fun isEmpty() {
+        return len(this.items) == 0;
+    }
+}
+
+class Queue {
+    fun init() {
+        this.items = [];
+    }
+    fun enqueue(item) {
+        push(this.items, item);
+    }
+    fun dequeue() {
+        let item = this.items[0];
+        let newItems = [];
+        let i = 1;
+        while (i < len(this.items)) {
+            push(newItems, this.items[i]);
+            i = i + 1;
+        }
+        this.items = newItems;
+        return item;
+    }
+}

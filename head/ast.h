@@ -203,11 +203,11 @@ struct ClassStmt : Stmt {
 
 struct NewExpr : Expr {
   Token keyword;
-  Token className;
+  ExprPtr classExpr;
   std::vector<ExprPtr> arguments;
 
-  NewExpr(Token keyword, Token className, std::vector<ExprPtr> arguments)
-      : keyword(std::move(keyword)), className(std::move(className)),
+  NewExpr(Token keyword, ExprPtr classExpr, std::vector<ExprPtr> arguments)
+      : keyword(std::move(keyword)), classExpr(std::move(classExpr)),
         arguments(std::move(arguments)) {}
 };
 

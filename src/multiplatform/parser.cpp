@@ -397,8 +397,17 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::NEW})) {
     Token kw = previous();
-    Token cls =
-        consume(TokenType::IDENTIFIER, "Expected class name after 'new'.");
+
+    ExprPtr classRef = std::make_unique<VariableExpr>(
+        consume(TokenType::IDENTIFIER, "Expected class name after 'new'."));
+
+    while (match({TokenType::DOT})) {
+      Token propName =
+          consume(TokenType::IDENTIFIER, "Expected property name after '.'.");
+      classRef =
+          std::make_unique<GetExpr>(std::move(classRef), std::move(propName));
+    }
+
     consume(TokenType::LPAREN, "Expected '(' after class name.");
     std::vector<ExprPtr> args;
     if (!check(TokenType::RPAREN)) {
@@ -407,7 +416,8 @@ ExprPtr Parser::primary() {
       } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RPAREN, "Expected ')' after arguments.");
-    return std::make_unique<NewExpr>(std::move(kw), std::move(cls),
+
+    return std::make_unique<NewExpr>(std::move(kw), std::move(classRef),
                                      std::move(args));
   }
 
