@@ -39,7 +39,8 @@ struct NinFunction : NinCallable {
   }
 };
 
-Interpreter::Interpreter(std::string sourceDir) {
+Interpreter::Interpreter(std::string sourceDir,
+                         std::vector<std::string> argvIn) {
   globals = std::make_shared<Environment>();
   env = globals;
 
@@ -47,12 +48,18 @@ Interpreter::Interpreter(std::string sourceDir) {
     globals->define(fn->name(), fn);
   };
 
+  std::vector<Value> argvValues;
+  for (auto &a : argvIn)
+    argvValues.push_back(a);
+  auto argvArray = std::make_shared<NinArray>(std::move(argvValues));
+
   reg(std::make_shared<LoadModuleFn>());
   reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
 
   reg(std::make_shared<InputFn>());
   reg(std::make_shared<SystemFn>());
   reg(std::make_shared<ClockFn>());
+  reg(std::make_shared<ArgvFn>(argvArray));
 
   reg(std::make_shared<StrFn>());
   reg(std::make_shared<NumFn>());

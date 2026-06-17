@@ -44,7 +44,7 @@ void runSource(const std::string &source, bool isRepl = false) {
   }
 }
 
-void runFile(const std::string &path) {
+void runFile(const std::string &path, std::vector<std::string> args) {
   std::ifstream file(path);
   if (!file.is_open()) {
     std::cerr << "Could not open file: " << path << "\n";
@@ -54,7 +54,7 @@ void runFile(const std::string &path) {
   std::string dir = std::filesystem::path(path).parent_path().string();
   if (dir.empty())
     dir = ".";
-  interpreter = Interpreter(dir);
+  interpreter = Interpreter(dir, args);
 
   std::ostringstream ss;
   ss << file.rdbuf();
@@ -64,10 +64,12 @@ void runFile(const std::string &path) {
     std::exit(1);
 }
 
-void runREPL() {
+void runREPL(std::vector<std::string> args) {
+  interpreter = Interpreter(".", args);
+
   std::cout << "Carrot " << AppVer.maj << "." << AppVer.min << "." << AppVer.fix
-            << " [" << AppVer.codename << "] (main, " << AppVer.date << ") [GCC "
-            << AppVer.gccver << "] on linux\n";
+            << " [" << AppVer.codename << "] (main, " << AppVer.date
+            << ") [GCC " << AppVer.gccver << "] on linux\n";
   std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n\n";
 
   char *rawInput = nullptr;
@@ -91,10 +93,15 @@ void runREPL() {
 int main(int argc, char *argv[]) {
   system("mkdir -p ~/.local/lib/carrot/modules");
   system("mkdir -p ~/.local/lib/carrot/CAPI");
+
+  std::vector<std::string> args;
+  for (int i = 0; i < argc; i++)
+    args.push_back(argv[i]);
+
   if (argc == 1) {
-    runREPL();
+    runREPL(args);
   } else if (argc == 2) {
-    runFile(argv[1]);
+    runFile(argv[1], args);
   } else {
     std::cerr
         << "This program takes 0 or 1 arguments\nRun it without an argument to "

@@ -152,3 +152,12 @@ struct LoadModuleFn : NinCallable {
   std::string name() override { return "loadmodule"; }
   Value call(std::vector<Value> args) override;
 };
+
+struct ArgvFn : NinCallable {
+  std::shared_ptr<NinArray> args;
+  explicit ArgvFn(std::shared_ptr<NinArray> args) : args(std::move(args)) {}
+
+  int arity() override { return 0; }
+  std::string name() override { return "argv"; }
+  Value call(std::vector<Value>) override { return args; }
+};
