@@ -406,6 +406,11 @@ Value Interpreter::evaluate(Expr *expr) {
   } else if (auto *e = dynamic_cast<GetExpr *>(expr)) {
     Value obj = evaluate(e->object.get());
 
+    if (std::holds_alternative<std::shared_ptr<NinNative>>(obj)) {
+      auto native = std::get<std::shared_ptr<NinNative>>(obj);
+      return native->getField(e->name.lexeme);
+    }
+
     if (std::holds_alternative<std::shared_ptr<NinModule>>(obj)) {
       auto mod = std::get<std::shared_ptr<NinModule>>(obj);
       auto it = mod->members.find(e->name.lexeme);
@@ -433,6 +438,12 @@ Value Interpreter::evaluate(Expr *expr) {
   } else if (auto *e = dynamic_cast<SetExpr *>(expr)) {
     Value obj = evaluate(e->object.get());
     Value val = evaluate(e->value.get());
+
+    if (std::holds_alternative<std::shared_ptr<NinNative>>(obj)) {
+      auto native = std::get<std::shared_ptr<NinNative>>(obj);
+      native->setField(e->name.lexeme, val);
+      return val;
+    }
 
     if (std::holds_alternative<std::shared_ptr<NinModule>>(obj)) {
       auto mod = std::get<std::shared_ptr<NinModule>>(obj);

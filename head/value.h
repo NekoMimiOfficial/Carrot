@@ -17,12 +17,14 @@ struct NinModule;
 struct NinClass;
 struct NinInstance;
 struct NinCoroutine;
+struct NinNative;
 
 using Value =
     std::variant<std::monostate, double, std::string, bool,
                  std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
                  std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
-                 std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>>;
+                 std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>,
+                 std::shared_ptr<NinNative>>;
 
 struct NinArray {
   std::vector<Value> elements;
@@ -73,6 +75,13 @@ struct NinCoroutine {
   std::shared_ptr<void> platformHandle;
 
   explicit NinCoroutine(std::function<Value()> t) : task(std::move(t)) {}
+};
+
+struct NinNative {
+  std::string typeName;
+  std::shared_ptr<void> data;
+  std::function<Value(const std::string &field)> getField;
+  std::function<void(const std::string &field, Value v)> setField;
 };
 
 // Helpers go below, stop looking where the divider is girl...
@@ -144,6 +153,10 @@ inline std::string valueToString(const Value &val) {
   if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(val))
     return "<coroutine>";
 
+  if (std::holds_alternative<std::shared_ptr<NinNative>>(val))
+    return "<native " + std::get<std::shared_ptr<NinNative>>(val)->typeName +
+           ">";
+
   return "<unknown>";
 }
 
@@ -151,7 +164,7 @@ inline bool isTruthy(const Value &val) {
   if (std::holds_alternative<std::monostate>(val))
     return false;
   if (std::holds_alternative<double>(val))
-    return (std::get<double>(val) == 0)? false : true;
+    return (std::get<double>(val) == 0) ? false : true;
   if (std::holds_alternative<bool>(val))
     return std::get<bool>(val);
   return true;

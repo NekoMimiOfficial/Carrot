@@ -13,5 +13,5 @@
 -[x] argv.  
 -[ ] nin bootstrap.  
 -[ ] try/catch.  
--[ ] custom types.  
+-[x] custom types.  
 -[ ] free types.  

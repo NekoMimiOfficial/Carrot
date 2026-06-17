@@ -15,7 +15,9 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `print` | `print(any)` | Writes to stdout. |
 | `class` | `class Main {}` | Creates a new class. |
 | `new` | `let x = new Main();` | Creates a new child object of a class. |
-| `DOT` | `x.object` | access an object from a module or class. |
+| `DOT` | `x.object` | Access an object from a module or class. |
+| `async` | `async fun x() {}` | Defines an asynchronous function. |
+| `coroutine` | `let x = coroutine y();` | Creates a coro instance of an async function. |
 
 
 # Built-ins  
@@ -25,6 +27,9 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `loadmodule()` | {string} | Imports an external C++API module shared object. |
 | `input()` | {string} | Asks the user to input data, returns a string, accepts an input prompt. |
 | `system()` | {string} | Executes a command on the system shell, returns the exit status code. |
+| `argv()` | {} | Returns an array of the argv. |
+| `coroutine.run()` | {} | Runs a coroutine instance. |
+| `coroutine.yield()` | {AnyType} | Yields the result of the coroutine if it has finished or the passed value if not. |
 | `clock()` | {} | Returns the unix epoch time. |
 | `str()` | {AnyType} | Converts any viable type to a string. |
 | `num()` | {string|float} | Converts any viable type to an integer. |
