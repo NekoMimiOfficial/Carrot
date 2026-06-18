@@ -100,13 +100,12 @@ int main(int argc, char *argv[]) {
 
   if (argc == 1) {
     runREPL(args);
-  } else if (argc == 2) {
-    runFile(argv[1], args);
+  } else if (argc > 1) {
+    std::string_view check = argv[1];
+    if (check == "-r")
+      runREPL(args);
   } else {
-    std::cerr
-        << "This program takes 0 or 1 arguments\nRun it without an argument to "
-           "open the interactive REPL\nPass a Ninjin script to run it.";
-    return 1;
+    runFile(argv[1], args);
   }
 
   return 0;

@@ -1,28 +1,33 @@
+<img src="./banner.png" align="center"/>
+
 # Carrot  
-Welcome to the future of UI development!  
-Making webapps that require a lot of RAM is now a thing of the past!  
-With carrot and it's simple scripting language Ninjin you can make multiplatform apps that suit your needs and will run on many devices!  
-Our pleadge for Carrot is to support the PS Vita first and foremost with desktop platforms second, making and debugging your Vita apps will be as simple as possible, we hope we can be your choice for an easy and straightforwards Vita homebrew development journey!  
+Welcome to the future of coding!  
+This has honestly devolved but still evolved from a UI toolkit to a solid programming lanuage with GUI support!  
+Carrot is your interpreter for the lightweight async ready object oriented language Ninjin!  
+We have a very good syntax and in our opinion the easiest learning curve, programming has never been any easier!  
 
 # RAM を あります か？ 待って。。 いらない わ！  
-With our bleeding edge technology we looked at the funny blue browser... *then we burned it and snorted the ashes... the euphoria led us to over-engineer this entire engine written in C++ with our custom interpreted language that easily takes a dump on JS!*  
-So it's RAM efficient?  
-Of course it is! there isn't as many things you can do with it compared to chromium but you really dont need every chromium feature to make apps...  
+With our bleeding edge technology we looked at the funny yellow square with 2 letters... *then we burned it and snorted the ashes... the euphoria led us to over-engineer this entire engine written in C++ with our custom interpreted language that easily takes a dump on JS!*  
+*Yes we really hate JS... it's just nonesense on top of nonesense!*  
+So how RAM efficient is it?  
+as efficient as it can be, so long as you write good code that doesn't just fill an array on an infinite while loop qwq  
+Carrot and Ninjin are simple by design yet allow you do a lot, this helps us retain our resource claims while providing extensive and extensible ways for developers to use the language  
 
-# How can I use this to make apps?  
-Your main concern wouldn't be the engine itself or compiling it, you can get a binary at the releases, as for making the actual apps it's really simple, you make your `app.nin` file which will deal with the UI, the logic and the styling!  
-the UI is written in XML (technically very close to HTML but with a couple of changes) and you can style in CSS, a list of the supported features is available at the DOCs section  
-We also have docs for Ninjin and examples too!  
+# So this is just YAUPL (Yet Another Useless Programming Language)?  
+Absolutely not!  
+Carrot as an engine/interpreter is not just designed to be lightweight but also cross-platform!  
+We support Linux and the PS Vita but we made sure that any ports are very easy to make, our codebase is platform separated which means that porting is as simple as editing 3 files!  
 
-# Is Carrot extensible?  
-Yes! Carrot has it's own modules both in Ninjin and a custom C++ API!  
-You can use the builtin modules or download and load community modules or even make your own!  
-The process is really simple actually and we provide examples for everything :3  
+# So Ninjin is simple by default but...  
+Now now... dont worry!  
+Carrot is design with an FFI (Foreign Function Interface) to extend the capabilities of Carrot as an engine and Ninjin as a language, you can add your custom logic or even custom types with our C++ API!  
+This allows us to create our modular GUI engine plus modularized updateable libraries!  
+With the speed of C and the full control over the language the possibilities are endless, really, the sky's the limit!  
 
-# Can I load an app OTA?  
-You *can* but make sure nothing goes wrong... Carrot is unsandboxed so any app you run you have to trust the developer or read the source  
-We can sandbox the engine but there is no point in doing so as people can just bake in malicious code into any app, here you at least have the ability to read the source `app.nin` file  
-but umm... weird thing Carrot can simply just run scripts off the air... and we wont be changing that...  
+# I'm new to Ninjin...  
+We got you covered!  
+Whether you like reading docs or examples, we got a bit for everyone, this includes for learning Ninjin (the language) or for creating FFI modules for Carrot (the engine/interpreter)  
+We're sure that anyone can pick up Ninjin with ease, even if you're new to coding dont let it intimidate you, we made sure our syntax is as easy as possible :3  
 
 # Feeding Neko a Carrot  
 I mean... they're not my favourite but... I wont say no to free food >.<  
