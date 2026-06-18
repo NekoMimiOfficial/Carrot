@@ -20,7 +20,7 @@ We support Linux and the PS Vita but we made sure that any ports are very easy t
 
 # So Ninjin is simple by default but...  
 Now now... dont worry!  
-Carrot is design with an FFI (Foreign Function Interface) to extend the capabilities of Carrot as an engine and Ninjin as a language, you can add your custom logic or even custom types with our C++ API!  
+Carrot is equipped with an FFI (Foreign Function Interface) to extend the capabilities of Carrot as an engine and Ninjin as a language, you can add your custom logic or even custom types with our C++ API!  
 This allows us to create our modular GUI engine plus modularized updateable libraries!  
 With the speed of C and the full control over the language the possibilities are endless, really, the sky's the limit!  
 

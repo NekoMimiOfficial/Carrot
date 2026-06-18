@@ -17,6 +17,7 @@
 -[ ] free types.  
 -[ ] exit function.  
 -[ ] constants.  
+-[ ] function argument default value.  
 
 # List of included modules and TODOs  
 -[ ] Networking.  
