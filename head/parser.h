@@ -15,6 +15,7 @@ private:
   int current = 0;
 
   StmtPtr declaration();
+  StmtPtr globalDeclaration();
   StmtPtr varDeclaration();
   StmtPtr funDeclaration();
   StmtPtr statement();

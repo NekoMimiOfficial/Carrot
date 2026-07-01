@@ -100,6 +100,10 @@ void Interpreter::execute(Stmt *stmt) {
     }
     env->define(s->name.lexeme, std::move(value));
 
+  } else if (auto *s = dynamic_cast<GlobalDecl *>(stmt)) {
+    Value val =
+        s->initializer ? evaluate(s->initializer.get()) : std::monostate{};
+    env->defineGlobal(s->name.lexeme, std::move(val));
   } else if (auto *s = dynamic_cast<BlockStmt *>(stmt)) {
     auto blockEnv = std::make_shared<Environment>(env);
     executeBlock(s->statements, std::move(blockEnv));

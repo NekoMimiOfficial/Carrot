@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 class Environment {
 public:
@@ -19,6 +20,18 @@ public:
         throw std::runtime_error("'" + name + "' is already defined.");
       e = e->parent.get();
     }
+    values[name] = std::move(value);
+  }
+
+  void defineGlobal(const std::string &name, Value value) {
+    Environment *e = this->parent ? this->parent.get() : this;
+    while (e) {
+      if (e->globals.count(name))
+        throw std::runtime_error("'" + name +
+                                 "' is already defined as global.");
+      e = e->parent.get();
+    }
+    globals.insert(name);
     values[name] = std::move(value);
   }
 
@@ -45,20 +58,31 @@ public:
   }
 
   void assign(const std::string &name, Value value) {
-    auto it = values.find(name);
-    if (it != values.end()) {
-      it->second = std::move(value);
+    Environment *e = this;
+    while (e) {
+      if (e->globals.count(name)) {
+        e->values[name] = std::move(value);
+        return;
+      }
+      e = e->parent.get();
+    }
+
+    if (values.count(name)) {
+      values[name] = std::move(value);
       return;
     }
 
-    if (parent) {
-      parent->assign(name, std::move(value));
-      return;
+    e = parent.get();
+    while (e) {
+      if (e->values.count(name)) {
+        values[name] = std::move(value);
+        return;
+      }
+      e = e->parent.get();
     }
 
     throw std::runtime_error("Cannot assign to undefined variable '" + name +
-                             "'. "
-                             "Use 'let' to declare it first.");
+                             "'.");
   }
 
   bool hasLocal(const std::string &name) const {
@@ -69,4 +93,5 @@ public:
 
 private:
   std::unordered_map<std::string, Value> values;
+  std::unordered_set<std::string> globals;
 };

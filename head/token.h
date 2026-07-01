@@ -52,6 +52,7 @@ enum class TokenType {
   CLASS,
   NEW,
   THIS,
+  GLOBAL,
 
   ASYNC,
   COROUTINE_KW,

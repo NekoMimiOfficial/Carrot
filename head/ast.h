@@ -240,5 +240,13 @@ struct AwaitExpr : Expr {
       : keyword(std::move(keyword)), value(std::move(value)) {}
 };
 
+struct GlobalDecl : Stmt {
+  Token name;
+  ExprPtr initializer;
+
+  GlobalDecl(Token name, ExprPtr initializer)
+      : name(std::move(name)), initializer(std::move(initializer)) {}
+};
+
 struct BreakStmt : Stmt {};
 struct ContinueStmt : Stmt {};

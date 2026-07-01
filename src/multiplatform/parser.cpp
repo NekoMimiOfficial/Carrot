@@ -11,6 +11,8 @@ std::vector<StmtPtr> Parser::parse() {
 }
 
 StmtPtr Parser::declaration() {
+  if (match({TokenType::GLOBAL}))
+    return globalDeclaration();
   if (match({TokenType::LET}))
     return varDeclaration();
   if (match({TokenType::ASYNC})) {
@@ -22,6 +24,15 @@ StmtPtr Parser::declaration() {
   if (match({TokenType::CLASS}))
     return classDeclaration();
   return statement();
+}
+
+StmtPtr Parser::globalDeclaration() {
+  Token name =
+      consume(TokenType::IDENTIFIER, "Expected variable name after 'global'.");
+  consume(TokenType::EQUAL, "Expected '=' after global variable name.");
+  ExprPtr init = expression();
+  consume(TokenType::SEMICOLON, "Expected ';' after global declaration.");
+  return std::make_unique<GlobalDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::varDeclaration() {
