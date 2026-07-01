@@ -248,5 +248,13 @@ struct GlobalDecl : Stmt {
       : name(std::move(name)), initializer(std::move(initializer)) {}
 };
 
+struct ConstDecl : Stmt {
+  Token name;
+  ExprPtr initializer;
+
+  ConstDecl(Token name, ExprPtr initializer)
+      : name(std::move(name)), initializer(std::move(initializer)) {}
+};
+
 struct BreakStmt : Stmt {};
 struct ContinueStmt : Stmt {};

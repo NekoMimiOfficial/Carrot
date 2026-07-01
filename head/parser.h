@@ -16,6 +16,7 @@ private:
 
   StmtPtr declaration();
   StmtPtr globalDeclaration();
+  StmtPtr constDeclaration();
   StmtPtr varDeclaration();
   StmtPtr funDeclaration();
   StmtPtr statement();

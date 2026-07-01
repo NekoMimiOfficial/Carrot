@@ -16,11 +16,11 @@
 -[x] custom types.  
 -[ ] free types.  
 -[x] exit function.  
--[ ] constants.  
+-[x] constants.  
 -[ ] function argument default value.  
 -[ ] mutex locks.  
--[ ] global variables.  
--[ ] scope isolation.  
+-[x] global variables.  
+-[x] scope isolation.  
 -[ ] class inheritance.  
 -[ ] function overriding.  
 

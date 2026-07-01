@@ -35,6 +35,17 @@ public:
     values[name] = std::move(value);
   }
 
+  void defineConst(const std::string &name, Value value) {
+    Environment *e = this;
+    while (e) {
+      if (e->values.count(name))
+        throw std::runtime_error("'" + name + "' is already defined.");
+      e = e->parent.get();
+    }
+    consts.insert(name);
+    values[name] = std::move(value);
+  }
+
   Value &get(const std::string &name) {
     auto it = values.find(name);
     if (it != values.end())
@@ -59,6 +70,13 @@ public:
 
   void assign(const std::string &name, Value value) {
     Environment *e = this;
+    while (e) {
+      if (e->consts.count(name))
+        throw std::runtime_error("Cannot assign to const '" + name + "'.");
+      e = e->parent.get();
+    }
+
+    e = this;
     while (e) {
       if (e->globals.count(name)) {
         e->values[name] = std::move(value);
@@ -89,9 +107,20 @@ public:
     return values.count(name) > 0;
   }
 
+  bool isConst(const std::string &name) const {
+    const Environment *e = this;
+    while (e) {
+      if (e->consts.count(name))
+        return true;
+      e = e->parent.get();
+    }
+    return false;
+  }
+
   std::unordered_map<std::string, Value> exportAll() const { return values; }
 
 private:
   std::unordered_map<std::string, Value> values;
   std::unordered_set<std::string> globals;
+  std::unordered_set<std::string> consts;
 };

@@ -15,6 +15,8 @@ StmtPtr Parser::declaration() {
     return globalDeclaration();
   if (match({TokenType::LET}))
     return varDeclaration();
+  if (match({TokenType::CONST}))
+    return constDeclaration();
   if (match({TokenType::ASYNC})) {
     consume(TokenType::FUN, "Expected 'fun' after 'async'.");
     return asyncFunctionDeclaration();
@@ -46,6 +48,15 @@ StmtPtr Parser::varDeclaration() {
 
   consume(TokenType::SEMICOLON, "Expected ';' after variable declaration.");
   return std::make_unique<VarDecl>(std::move(name), std::move(initializer));
+}
+
+StmtPtr Parser::constDeclaration() {
+  Token name =
+      consume(TokenType::IDENTIFIER, "Expected variable name after 'const'.");
+  consume(TokenType::EQUAL, "Expected '=' after const variable name.");
+  ExprPtr init = expression();
+  consume(TokenType::SEMICOLON, "Expected ';' after const declaration.");
+  return std::make_unique<ConstDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::funDeclaration() {

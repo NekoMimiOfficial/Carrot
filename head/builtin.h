@@ -93,6 +93,8 @@ struct PushFn : NinCallable {
   Value call(std::vector<Value> args) override {
     if (!std::holds_alternative<std::shared_ptr<NinArray>>(args[0]))
       throw std::runtime_error("push(): first argument must be an array.");
+    if (std::get<std::shared_ptr<NinArray>>(args[0])->isConst)
+      throw std::runtime_error("push(): cannot modify a const array.");
     std::get<std::shared_ptr<NinArray>>(args[0])->elements.push_back(args[1]);
     return args[0];
   }
@@ -105,6 +107,8 @@ struct PopFn : NinCallable {
     if (!std::holds_alternative<std::shared_ptr<NinArray>>(args[0]))
       throw std::runtime_error("pop(): argument must be an array.");
     auto arr = std::get<std::shared_ptr<NinArray>>(args[0]);
+    if (arr->isConst)
+      throw std::runtime_error("pop(): cannot modify a const array.");
     if (arr->elements.empty())
       throw std::runtime_error("pop(): array is empty.");
     Value last = arr->elements.back();

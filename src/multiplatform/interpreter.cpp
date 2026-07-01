@@ -104,6 +104,11 @@ void Interpreter::execute(Stmt *stmt) {
     Value val =
         s->initializer ? evaluate(s->initializer.get()) : std::monostate{};
     env->defineGlobal(s->name.lexeme, std::move(val));
+  } else if (auto *s = dynamic_cast<ConstDecl *>(stmt)) {
+    Value val = evaluate(s->initializer.get());
+    if (std::holds_alternative<std::shared_ptr<NinArray>>(val))
+      std::get<std::shared_ptr<NinArray>>(val)->isConst = true;
+    env->defineConst(s->name.lexeme, std::move(val));
   } else if (auto *s = dynamic_cast<BlockStmt *>(stmt)) {
     auto blockEnv = std::make_shared<Environment>(env);
     executeBlock(s->statements, std::move(blockEnv));
@@ -394,6 +399,12 @@ Value Interpreter::evaluate(Expr *expr) {
     Value obj = evaluate(e->object.get());
     Value idx = evaluate(e->index.get());
     Value val = evaluate(e->value.get());
+
+    if (auto *v = dynamic_cast<VariableExpr *>(e->object.get())) {
+      if (env->isConst(v->name.lexeme))
+        throw std::runtime_error("Cannot modify const array '" +
+                                 v->name.lexeme + "'.");
+    }
 
     if (!std::holds_alternative<std::shared_ptr<NinArray>>(obj))
       throw std::runtime_error("Can only index-assign into arrays.");

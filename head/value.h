@@ -29,6 +29,7 @@ using Value =
 
 struct NinArray {
   std::vector<Value> elements;
+  bool isConst = false;
 
   NinArray() = default;
   explicit NinArray(std::vector<Value> elems) : elements(std::move(elems)) {}
