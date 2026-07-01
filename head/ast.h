@@ -196,9 +196,22 @@ struct SetExpr : Expr {
 struct ClassStmt : Stmt {
   Token name;
   std::vector<std::unique_ptr<FunctionStmt>> methods;
+  std::vector<std::unique_ptr<FunctionStmt>> overrides;
+  std::unique_ptr<Token> superclass;
 
-  ClassStmt(Token name, std::vector<std::unique_ptr<FunctionStmt>> methods)
-      : name(std::move(name)), methods(std::move(methods)) {}
+  ClassStmt(Token name, std::vector<std::unique_ptr<FunctionStmt>> methods,
+            std::vector<std::unique_ptr<FunctionStmt>> overrides,
+            std::unique_ptr<Token> superclass)
+      : name(std::move(name)), methods(std::move(methods)),
+        overrides(std::move(overrides)), superclass(std::move(superclass)) {}
+};
+
+struct SuperExpr : Expr {
+  Token keyword;
+  std::vector<ExprPtr> arguments;
+
+  SuperExpr(Token keyword, std::vector<ExprPtr> arguments)
+      : keyword(std::move(keyword)), arguments(std::move(arguments)) {}
 };
 
 struct NewExpr : Expr {

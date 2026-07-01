@@ -57,8 +57,11 @@ struct NinModule {
 struct NinClass {
   std::string className;
   std::unordered_map<std::string, std::shared_ptr<NinCallable>> methods;
+  std::shared_ptr<NinClass> superclass;
 
-  explicit NinClass(std::string name) : className(std::move(name)) {}
+  explicit NinClass(std::string name,
+                    std::shared_ptr<NinClass> superclass = nullptr)
+      : className(std::move(name)), superclass(std::move(superclass)) {}
 };
 
 struct NinInstance {

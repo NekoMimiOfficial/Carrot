@@ -15,7 +15,7 @@ class Circle {
 let c = new Circle(5);
 print(c.area());
 
-let i = 0;
+global i = 0;
 while (i < 5) {
     print(i);
     i = i + 1;

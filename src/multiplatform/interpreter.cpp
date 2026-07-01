@@ -184,12 +184,42 @@ void Interpreter::execute(Stmt *stmt) {
     throw BreakException{};
 
   } else if (auto *s = dynamic_cast<ClassStmt *>(stmt)) {
-    auto klass = std::make_shared<NinClass>(s->name.lexeme);
+    std::shared_ptr<NinClass> superclass = nullptr;
+    if (s->superclass) {
+      Value superVal = env->get(s->superclass->lexeme);
+      if (!std::holds_alternative<std::shared_ptr<NinClass>>(superVal))
+        throw std::runtime_error("'" + s->superclass->lexeme +
+                                 "' is not a class.");
+      superclass = std::get<std::shared_ptr<NinClass>>(superVal);
+    }
+
+    auto klass = std::make_shared<NinClass>(s->name.lexeme, superclass);
     env->define(s->name.lexeme, klass);
 
-    for (auto &methodDecl : s->methods) {
-      auto fn = std::make_shared<NinFunction>(methodDecl.get(), env, this);
-      klass->methods[methodDecl->name.lexeme] = fn;
+    if (superclass) {
+      for (auto &[methodName, method] : superclass->methods) {
+        if (methodName == "init")
+          continue;
+        klass->methods[methodName] = method;
+      }
+    }
+
+    for (auto &method : s->methods) {
+      if (superclass && superclass->methods.count(method->name.lexeme) &&
+          method->name.lexeme != "init")
+        throw std::runtime_error(
+            "Method '" + method->name.lexeme +
+            "' exists in parent class. Use 'override' to replace it.");
+      klass->methods[method->name.lexeme] =
+          std::make_shared<NinFunction>(method.get(), env, this);
+    }
+
+    for (auto &method : s->overrides) {
+      if (!superclass || !superclass->methods.count(method->name.lexeme))
+        throw std::runtime_error("Cannot override '" + method->name.lexeme +
+                                 "': not defined in parent class.");
+      klass->methods[method->name.lexeme] =
+          std::make_shared<NinFunction>(method.get(), env, this);
     }
   } else if (auto *s = dynamic_cast<FreeStmt *>(stmt)) {
     env->free(s->name.lexeme);
@@ -562,6 +592,32 @@ Value Interpreter::evaluate(Expr *expr) {
     inst->fields["yield"] = std::make_shared<YieldFn>(coro);
     return inst;
 
+  } else if (auto *e = dynamic_cast<SuperExpr *>(expr)) {
+    Value thisVal = env->get("this");
+    if (!std::holds_alternative<std::shared_ptr<NinInstance>>(thisVal))
+      throw std::runtime_error("'super' used outside a class method.");
+
+    auto inst = std::get<std::shared_ptr<NinInstance>>(thisVal);
+    auto superclass = inst->klass->superclass;
+    if (!superclass)
+      throw std::runtime_error("Class '" + inst->klass->className +
+                               "' has no parent class.");
+
+    auto it = superclass->methods.find("init");
+    if (it == superclass->methods.end())
+      throw std::runtime_error("Parent class has no 'init' method.");
+
+    std::vector<Value> args;
+    for (auto &arg : e->arguments)
+      args.push_back(evaluate(arg.get()));
+
+    auto bound = makeBoundMethod(inst, it->second);
+    if ((int)args.size() != bound->arity())
+      throw std::runtime_error(
+          "super() expects " + std::to_string(bound->arity()) +
+          " argument(s) but got " + std::to_string(args.size()) + ".");
+    bound->call(std::move(args));
+    return std::monostate{};
   } else if (auto *e = dynamic_cast<AwaitExpr *>(expr)) {
     if (!insideCoroutine)
       throw std::runtime_error(

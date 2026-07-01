@@ -102,10 +102,11 @@ int main(int argc, char *argv[]) {
     runREPL(args);
   } else if (argc > 1) {
     std::string_view check = argv[1];
-    if (check == "-r")
+    if (check == "-r") {
       runREPL(args);
-  } else {
-    runFile(argv[1], args);
+    } else {
+      runFile(argv[1], args);
+    }
   }
 
   return 0;

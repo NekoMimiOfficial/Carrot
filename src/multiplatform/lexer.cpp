@@ -2,17 +2,30 @@
 #include <stdexcept>
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
-    {"let", TokenType::LET},         {"fun", TokenType::FUN},
-    {"return", TokenType::RETURN},   {"if", TokenType::IF},
-    {"else", TokenType::ELSE},       {"while", TokenType::WHILE},
-    {"for", TokenType::FOR},         {"true", TokenType::TRUE_LIT},
-    {"false", TokenType::FALSE_LIT}, {"nil", TokenType::NIL},
-    {"print", TokenType::PRINT},     {"and", TokenType::AND},
-    {"or", TokenType::OR},           {"class", TokenType::CLASS},
-    {"new", TokenType::NEW},         {"this", TokenType::THIS},
-    {"async", TokenType::ASYNC},     {"coroutine", TokenType::COROUTINE_KW},
-    {"await", TokenType::AWAIT},     {"global", TokenType::GLOBAL},
-    {"const", TokenType::CONST},     {"free", TokenType::FREE},
+    {"let", TokenType::LET},
+    {"fun", TokenType::FUN},
+    {"return", TokenType::RETURN},
+    {"if", TokenType::IF},
+    {"else", TokenType::ELSE},
+    {"while", TokenType::WHILE},
+    {"for", TokenType::FOR},
+    {"true", TokenType::TRUE_LIT},
+    {"false", TokenType::FALSE_LIT},
+    {"nil", TokenType::NIL},
+    {"print", TokenType::PRINT},
+    {"and", TokenType::AND},
+    {"or", TokenType::OR},
+    {"class", TokenType::CLASS},
+    {"new", TokenType::NEW},
+    {"this", TokenType::THIS},
+    {"async", TokenType::ASYNC},
+    {"coroutine", TokenType::COROUTINE_KW},
+    {"await", TokenType::AWAIT},
+    {"global", TokenType::GLOBAL},
+    {"const", TokenType::CONST},
+    {"free", TokenType::FREE},
+    {"override", TokenType::OVERRIDE},
+    {"super", TokenType::SUPER},
 };
 
 Lexer::Lexer(const std::string &source) : source(source) {}
@@ -49,6 +62,9 @@ void Lexer::scanToken() {
     break;
   case ';':
     addToken(TokenType::SEMICOLON);
+    break;
+  case ':':
+    addToken(TokenType::COLON);
     break;
   case ',':
     addToken(TokenType::COMMA);

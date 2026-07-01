@@ -1,0 +1,23 @@
+class Animal {
+    fun init(name) {
+        this.name = name;
+    }
+    fun speak() {
+        print("...");
+    }
+}
+
+class Cat : Animal {
+    fun init(name, breed) {
+        super(name);
+        this.breed = breed;
+    }
+    override fun speak() {
+        print("Nyaou~ It's " + this.name + "!");
+    }
+}
+
+let d = new Cat("KitKat", "Ragdoll");
+d.speak();
+print(d.name);
+print(d.breed);

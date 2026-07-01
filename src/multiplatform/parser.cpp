@@ -225,17 +225,37 @@ StmtPtr Parser::expressionStatement() {
 
 StmtPtr Parser::classDeclaration() {
   Token name = consume(TokenType::IDENTIFIER, "Expected class name.");
+
+  std::unique_ptr<Token> superclass = nullptr;
+  if (match({TokenType::COLON})) {
+    Token parentName =
+        consume(TokenType::IDENTIFIER, "Expected parent class name after ':'.");
+    superclass = std::make_unique<Token>(std::move(parentName));
+  }
+
   consume(TokenType::LBRACE, "Expected '{' before class body.");
 
   std::vector<std::unique_ptr<FunctionStmt>> methods;
+  std::vector<std::unique_ptr<FunctionStmt>> overrides;
+
   while (!check(TokenType::RBRACE) && !isAtEnd()) {
-    consume(TokenType::FUN, "Expected 'fun' in class body.");
-    auto fn = std::unique_ptr<FunctionStmt>(
-        static_cast<FunctionStmt *>(funDeclaration().release()));
-    methods.push_back(std::move(fn));
+    if (match({TokenType::OVERRIDE})) {
+      consume(TokenType::FUN, "Expected 'fun' after 'override'.");
+      auto fn = std::unique_ptr<FunctionStmt>(
+          static_cast<FunctionStmt *>(funDeclaration().release()));
+      overrides.push_back(std::move(fn));
+    } else {
+      consume(TokenType::FUN, "Expected 'fun' in class body.");
+      auto fn = std::unique_ptr<FunctionStmt>(
+          static_cast<FunctionStmt *>(funDeclaration().release()));
+      methods.push_back(std::move(fn));
+    }
   }
+
   consume(TokenType::RBRACE, "Expected '}' after class body.");
-  return std::make_unique<ClassStmt>(std::move(name), std::move(methods));
+  return std::make_unique<ClassStmt>(std::move(name), std::move(methods),
+                                     std::move(overrides),
+                                     std::move(superclass));
 }
 
 StmtPtr Parser::freeStatement() {
@@ -479,6 +499,19 @@ ExprPtr Parser::primary() {
     Token kw = previous();
     ExprPtr val = call();
     return std::make_unique<AwaitExpr>(std::move(kw), std::move(val));
+  }
+
+  if (match({TokenType::SUPER})) {
+    Token kw = previous();
+    consume(TokenType::LPAREN, "Expected '(' after 'super'.");
+    std::vector<ExprPtr> args;
+    if (!check(TokenType::RPAREN)) {
+      do {
+        args.push_back(expression());
+      } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RPAREN, "Expected ')' after super arguments.");
+    return std::make_unique<SuperExpr>(std::move(kw), std::move(args));
   }
 
   throw std::runtime_error("Expected expression at line " +

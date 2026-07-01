@@ -21,8 +21,8 @@
 - [ ] mutex locks.  
 - [x] global variables.  
 - [x] scope isolation.  
-- [ ] class inheritance.  
-- [ ] function overriding.  
+- [x] class inheritance.  
+- [x] function overriding.  
 - [ ] scope GC.  
 
 # List of included modules and TODOs  

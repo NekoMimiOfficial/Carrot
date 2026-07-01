@@ -11,7 +11,7 @@ if (x > 5) {
     print("x is small");
 }
 
-let i = 0;
+global i = 0;
 while (i < 5) {
     print(i);
     i = i + 1;

@@ -47,6 +47,7 @@ enum class TokenType {
   LBRACKET,
   RBRACKET,
   SEMICOLON,
+  COLON,
   COMMA,
   DOT,
 
@@ -55,6 +56,8 @@ enum class TokenType {
   THIS,
   GLOBAL,
   CONST,
+  OVERRIDE,
+  SUPER,
 
   ASYNC,
   COROUTINE_KW,
