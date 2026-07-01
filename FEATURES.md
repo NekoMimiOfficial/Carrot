@@ -19,12 +19,17 @@
 -[ ] constants.  
 -[ ] function argument default value.  
 -[ ] mutex locks.  
+-[ ] global variables.  
+-[ ] scope isolation.  
+-[ ] class inheritance.  
+-[ ] function overriding.  
 
 # List of included modules and TODOs  
 -[ ] Networking.  
 -[ ] String Operations.  
 -[ ] Bootstrap.  
 -[ ] JSON.  
+-[ ] XML.  
 -[ ] UI.  
 -[ ] Math.  
 -[ ] Filesystem.  

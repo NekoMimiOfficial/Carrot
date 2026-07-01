@@ -13,6 +13,12 @@ public:
       : parent(std::move(parent)) {}
 
   void define(const std::string &name, Value value) {
+    Environment *e = this;
+    while (e) {
+      if (e->values.count(name))
+        throw std::runtime_error("'" + name + "' is already defined.");
+      e = e->parent.get();
+    }
     values[name] = std::move(value);
   }
 
