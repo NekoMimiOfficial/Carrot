@@ -256,5 +256,10 @@ struct ConstDecl : Stmt {
       : name(std::move(name)), initializer(std::move(initializer)) {}
 };
 
+struct FreeStmt : Stmt {
+  Token name;
+  explicit FreeStmt(Token name) : name(std::move(name)) {}
+};
+
 struct BreakStmt : Stmt {};
 struct ContinueStmt : Stmt {};

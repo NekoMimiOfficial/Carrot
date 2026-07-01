@@ -14,6 +14,7 @@ enum class TokenType {
   LET,
   FUN,
   RETURN,
+  FREE,
   IF,
   ELSE,
   WHILE,

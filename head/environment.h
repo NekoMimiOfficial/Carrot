@@ -103,6 +103,20 @@ public:
                              "'.");
   }
 
+  void free(const std::string &name) {
+    Environment *e = this;
+    while (e) {
+      if (e->values.count(name)) {
+        e->values.erase(name);
+        e->consts.erase(name);
+        e->globals.erase(name);
+        return;
+      }
+      e = e->parent.get();
+    }
+    throw std::runtime_error("Cannot free undefined variable '" + name + "'.");
+  }
+
   bool hasLocal(const std::string &name) const {
     return values.count(name) > 0;
   }

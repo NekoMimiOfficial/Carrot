@@ -120,6 +120,8 @@ StmtPtr Parser::statement() {
     return printStatement();
   if (match({TokenType::LBRACE}))
     return block();
+  if (match({TokenType::FREE}))
+    return freeStatement();
 
   if (peek().lexeme == "break") {
     advance();
@@ -234,6 +236,13 @@ StmtPtr Parser::classDeclaration() {
   }
   consume(TokenType::RBRACE, "Expected '}' after class body.");
   return std::make_unique<ClassStmt>(std::move(name), std::move(methods));
+}
+
+StmtPtr Parser::freeStatement() {
+  Token name =
+      consume(TokenType::IDENTIFIER, "Expected variable name after 'free'.");
+  consume(TokenType::SEMICOLON, "Expected ';' after free statement.");
+  return std::make_unique<FreeStmt>(std::move(name));
 }
 
 ExprPtr Parser::expression() { return assignment(); }

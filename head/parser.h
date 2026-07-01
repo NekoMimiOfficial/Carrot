@@ -19,6 +19,7 @@ private:
   StmtPtr constDeclaration();
   StmtPtr varDeclaration();
   StmtPtr funDeclaration();
+  StmtPtr freeStatement();
   StmtPtr statement();
   StmtPtr ifStatement();
   StmtPtr whileStatement();

@@ -53,6 +53,7 @@ Interpreter::Interpreter(std::string sourceDir,
     argvValues.push_back(a);
   auto argvArray = std::make_shared<NinArray>(std::move(argvValues));
 
+  // builtin registration is done here
   reg(std::make_shared<LoadModuleFn>());
   reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
 
@@ -69,6 +70,7 @@ Interpreter::Interpreter(std::string sourceDir,
   reg(std::make_shared<PushFn>());
   reg(std::make_shared<PopFn>());
 
+  // loading the bootstrap module
   ImportFn bootstrapImporter(this, sourceDir);
   Value bootstrapMod = bootstrapImporter.call({std::string("@bootstrap.nin")});
   globals->define("nin", bootstrapMod);
@@ -189,6 +191,8 @@ void Interpreter::execute(Stmt *stmt) {
       auto fn = std::make_shared<NinFunction>(methodDecl.get(), env, this);
       klass->methods[methodDecl->name.lexeme] = fn;
     }
+  } else if (auto *s = dynamic_cast<FreeStmt *>(stmt)) {
+    env->free(s->name.lexeme);
   } else if (dynamic_cast<ContinueStmt *>(stmt)) {
     throw ContinueException{};
   }

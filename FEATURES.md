@@ -1,36 +1,38 @@
 # List of features and TODOs for Ninjin  
--[x] variable definitions.  
--[x] if statements.  
--[x] while statements.  
--[x] function declarations.  
--[x] print.  
--[x] class declarations.  
--[x] "new" instantiation.  
--[x] imports.  
--[x] C++ API.  
--[x] coroutines.  
--[ ] shared global library.  
--[x] argv.  
--[ ] nin bootstrap.  
--[ ] try/catch.  
--[x] custom types.  
--[ ] free types.  
--[x] exit function.  
--[x] constants.  
--[ ] function argument default value.  
--[ ] mutex locks.  
--[x] global variables.  
--[x] scope isolation.  
--[ ] class inheritance.  
--[ ] function overriding.  
+- [x] variable definitions.  
+- [x] if statements.  
+- [x] while statements.  
+- [x] function declarations.  
+- [x] print.  
+- [x] class declarations.  
+- [x] "new" instantiation.  
+- [x] imports.  
+- [x] C++ API.  
+- [x] coroutines.  
+- [ ] shared global library.  
+- [x] argv.  
+- [ ] nin bootstrap.  
+- [ ] try/catch.  
+- [x] custom types.  
+- [x] free types.  
+- [x] exit function.  
+- [x] constants.  
+- [ ] function argument default value.  
+- [ ] mutex locks.  
+- [x] global variables.  
+- [x] scope isolation.  
+- [ ] class inheritance.  
+- [ ] function overriding.  
+- [ ] scope GC.  
 
 # List of included modules and TODOs  
--[ ] Networking.  
--[ ] String Operations.  
--[ ] Bootstrap.  
--[ ] JSON.  
--[ ] XML.  
--[ ] UI.  
--[ ] Math.  
--[ ] Filesystem.  
--[ ] TermTools.  
+- [ ] Networking.  
+- [ ] String Operations.  
+- [ ] Bootstrap.  
+- [ ] JSON.  
+- [ ] XML.  
+- [ ] UI.  
+- [ ] Math.  
+- [ ] GUI.  
+- [ ] Filesystem.  
+- [ ] TermTools.  
