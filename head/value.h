@@ -2,6 +2,7 @@
 #include "ast.h"
 #include <atomic>
 #include <cmath>
+#include <cstring>
 #include <functional>
 #include <iomanip>
 #include <memory>
@@ -177,4 +178,21 @@ inline bool isEqual(const Value &a, const Value &b) {
            std::get<std::shared_ptr<NinArray>>(b).get();
   }
   return a == b;
+}
+
+inline bool isInt(double d) {
+  uint64_t bits;
+  std::memcpy(&bits, &d, sizeof(bits));
+
+  int32_t exponent = ((bits >> 52) & 0x7FF) - 1023;
+
+  if (exponent >= 52) {
+    return exponent == 1024 ? false : true;
+  }
+  if (exponent < 0) {
+    return d == 0.0;
+  }
+
+  uint64_t fractional_mask = (1ULL << (52 - exponent)) - 1;
+  return (bits & fractional_mask) == 0;
 }

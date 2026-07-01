@@ -15,9 +15,10 @@
 -[ ] try/catch.  
 -[x] custom types.  
 -[ ] free types.  
--[ ] exit function.  
+-[x] exit function.  
 -[ ] constants.  
 -[ ] function argument default value.  
+-[ ] mutex locks.  
 
 # List of included modules and TODOs  
 -[ ] Networking.  

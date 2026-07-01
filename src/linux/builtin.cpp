@@ -84,3 +84,13 @@ Value LoadModuleFn::call(std::vector<Value> args) {
 
   return mod;
 }
+
+Value ExitFn::call(std::vector<Value> args) {
+  if (!(std::holds_alternative<double>(args[0]))) 
+  { throw std::runtime_error("exit(): argument must be an integer"); }
+  double get_arg = std::get<double>(args[0]);
+  if (!(isInt(get_arg)))
+  { throw std::runtime_error("exit(): argument must be an integer"); }
+  int ret_code = static_cast<int>(get_arg);
+  exit(ret_code);
+}

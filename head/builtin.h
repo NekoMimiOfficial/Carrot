@@ -163,3 +163,9 @@ struct ArgvFn : NinCallable {
   std::string name() override { return "argv"; }
   Value call(std::vector<Value>) override { return args; }
 };
+
+struct ExitFn : NinCallable {
+  int arity() override { return 1; }
+  std::string name() override { return "exit"; }
+  Value call(std::vector<Value> args) override;
+};
