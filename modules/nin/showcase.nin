@@ -1,0 +1,174 @@
+const MEOW_LIMIT = 5;
+
+class Animal {
+    fun init(name, sound) {
+        this.name = name;
+        this.sound = sound;
+        this.tricks = [];
+    }
+
+    fun speak() {
+        print(this.name + " says " + this.sound + "!");
+    }
+
+    fun learnTrick(trick) {
+        push(this.tricks, trick);
+    }
+
+    fun showTricks() {
+        if (len(this.tricks) == 0) {
+            print(this.name + " knows no tricks.");
+            return;
+        }
+        global i = 0;
+        while (i < len(this.tricks)) {
+            print(this.name + " can: " + this.tricks[i]);
+            i = i + 1;
+        }
+    }
+}
+
+class Cat : Animal {
+    fun init(name, breed, indoor) {
+        super(name, "Meow");
+        this.breed = breed;
+        this.indoor = indoor;
+        this.meowCount = 0;
+        this.mood = "content";
+    }
+
+    override fun speak() {
+        if (this.meowCount >= MEOW_LIMIT) {
+            print(this.name + " is tired of meowing.");
+            return;
+        }
+        print(this.name + " the " + this.breed + " says MEOW!");
+        this.meowCount = this.meowCount + 1;
+    }
+
+    fun purr() {
+        this.mood = "happy";
+        print(this.name + " purrs contentedly... purrrrr");
+    }
+
+    fun hiss() {
+        this.mood = "angry";
+        print(this.name + " hisses! >:3");
+    }
+
+    fun status() {
+        let indoorStr = "outdoor";
+        if (this.indoor) {
+            indoorStr = "indoor";
+        }
+        print(this.name + " is a " + indoorStr + " " + this.breed + " who is feeling " + this.mood + ".");
+    }
+}
+
+class KittenShelter {
+    fun init(shelterName) {
+        this.shelterName = shelterName;
+        this.cats = [];
+        this.adoptions = 0;
+    }
+
+    fun intake(cat) {
+        push(this.cats, cat);
+        print(cat.name + " has joined " + this.shelterName + "!");
+    }
+
+    fun adopt(name) {
+        global i = 0;
+        while (i < len(this.cats)) {
+            if (this.cats[i].name == name) {
+                let adopted = this.cats[i];
+                let newCats = [];
+                global j = 0;
+                while (j < len(this.cats)) {
+                    if (j != i) {
+                        push(newCats, this.cats[j]);
+                    }
+                    j = j + 1;
+                }
+                this.cats = newCats;
+                this.adoptions = this.adoptions + 1;
+                print(adopted.name + " has been adopted! Total adoptions: " + str(this.adoptions));
+                return adopted;
+            }
+            i = i + 1;
+        }
+        print("No cat named " + name + " found.");
+        return nil;
+    }
+
+    fun listCats() {
+        print("Cats at " + this.shelterName + ":");
+        global i = 0;
+        while (i < len(this.cats)) {
+            print("  - " + this.cats[i].name + " (" + this.cats[i].breed + ")");
+            i = i + 1;
+        }
+    }
+
+    fun headcount() {
+        return len(this.cats);
+    }
+}
+
+async fun fetchCatFact(url) {
+    return loadmodule("@libcarrot_net.so").get(url);
+}
+
+let mochi = new Cat("Mochi", "Scottish Fold", true);
+let nori = new Cat("Nori", "Maine Coon", false);
+let yuzu = new Cat("Yuzu", "Siamese", true);
+
+mochi.speak();
+mochi.speak();
+mochi.purr();
+mochi.status();
+
+nori.speak();
+nori.hiss();
+nori.status();
+
+mochi.learnTrick("sit");
+mochi.learnTrick("high five");
+mochi.learnTrick("spin");
+mochi.showTricks();
+
+nori.showTricks();
+
+let shelter = new KittenShelter("Paw Palace");
+shelter.intake(yuzu);
+shelter.intake(new Cat("Matcha", "Ragdoll", true));
+shelter.intake(new Cat("Soba", "British Shorthair", true));
+
+shelter.listCats();
+print("Current headcount: " + str(shelter.headcount()));
+
+let adoptedCat = shelter.adopt("Matcha");
+adoptedCat.purr();
+shelter.listCats();
+
+global i = 0;
+while (i < MEOW_LIMIT + 2) {
+    mochi.speak();
+    i = i + 1;
+}
+free i;
+
+let factCoro = coroutine fetchCatFact("https://catfact.ninja/fact");
+factCoro.run();
+
+global waiting = true;
+global result = nil;
+while (waiting) {
+    result = factCoro.yield(nil);
+    if (result != nil) {
+        waiting = false;
+    }
+}
+
+print("Cat fact: " + result);
+

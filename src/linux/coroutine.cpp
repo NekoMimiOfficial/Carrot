@@ -15,12 +15,22 @@ void coroutineRun(std::shared_ptr<NinCoroutine> coro) {
         insideCoroutine = true;
         try {
           Value result = coro->task();
-          coro->returnValue = result;
+          coro->setReturn(result);
         } catch (...) {
-          coro->returnValue = std::monostate{};
+          coro->setReturn(std::monostate{});
         }
         coro->state = NinCoroutine::State::DONE;
       }));
 
   coro->platformHandle = future;
+}
+
+void coroutineJoin(std::shared_ptr<NinCoroutine> coro) {
+  if (coro->platformHandle) {
+    auto future =
+        std::static_pointer_cast<std::future<void>>(coro->platformHandle);
+    if (future->valid())
+      future->get();
+    coro->platformHandle = nullptr;
+  }
 }

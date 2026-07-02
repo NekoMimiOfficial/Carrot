@@ -1,12 +1,9 @@
 #pragma once
-#include "ast.h"
 #include <atomic>
 #include <cmath>
-#include <cstring>
 #include <functional>
 #include <iomanip>
 #include <memory>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -22,15 +19,14 @@ struct NinCoroutine;
 struct NinNative;
 
 using Value =
-    std::variant<std::monostate, double, std::string, bool,
-                 std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
-                 std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
-                 std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>,
-                 std::shared_ptr<NinNative>>;
+std::variant<std::monostate, double, std::string, bool,
+std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
+std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
+std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>,
+std::shared_ptr<NinNative>>;
 
 struct NinArray {
   std::vector<Value> elements;
-  bool isConst = false;
 
   NinArray() = default;
   explicit NinArray(std::vector<Value> elems) : elements(std::move(elems)) {}
@@ -45,24 +41,20 @@ struct NinCallable {
 
 struct NinModule {
   std::string sourcePath;
-  std::vector<StmtPtr> ast;
   std::unordered_map<std::string, Value> members;
   void *handle = nullptr;
 
   NinModule() = default;
 
   NinModule(std::string path, std::unordered_map<std::string, Value> members)
-      : sourcePath(std::move(path)), members(std::move(members)) {}
+  : sourcePath(std::move(path)), members(std::move(members)) {}
 };
 
 struct NinClass {
   std::string className;
   std::unordered_map<std::string, std::shared_ptr<NinCallable>> methods;
-  std::shared_ptr<NinClass> superclass;
 
-  explicit NinClass(std::string name,
-                    std::shared_ptr<NinClass> superclass = nullptr)
-      : className(std::move(name)), superclass(std::move(superclass)) {}
+  explicit NinClass(std::string name) : className(std::move(name)) {}
 };
 
 struct NinInstance {
@@ -77,21 +69,10 @@ struct NinCoroutine {
 
   std::atomic<State> state{State::CREATED};
   Value returnValue;
-  std::mutex valueMutex;
   std::function<Value()> task;
   std::shared_ptr<void> platformHandle;
 
   explicit NinCoroutine(std::function<Value()> t) : task(std::move(t)) {}
-
-  void setReturn(Value v) {
-    std::lock_guard<std::mutex> lock(valueMutex);
-    returnValue = std::move(v);
-  }
-
-  Value getReturn() {
-    std::lock_guard<std::mutex> lock(valueMutex);
-    return returnValue;
-  }
 };
 
 struct NinNative {
@@ -159,12 +140,12 @@ inline std::string valueToString(const Value &val) {
 
   if (std::holds_alternative<std::shared_ptr<NinClass>>(val)) {
     return "<class " + std::get<std::shared_ptr<NinClass>>(val)->className +
-           ">";
+    ">";
   }
 
   if (std::holds_alternative<std::shared_ptr<NinInstance>>(val)) {
     return "<instance of " +
-           std::get<std::shared_ptr<NinInstance>>(val)->klass->className + ">";
+    std::get<std::shared_ptr<NinInstance>>(val)->klass->className + ">";
   }
 
   if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(val))
@@ -172,7 +153,7 @@ inline std::string valueToString(const Value &val) {
 
   if (std::holds_alternative<std::shared_ptr<NinNative>>(val))
     return "<native " + std::get<std::shared_ptr<NinNative>>(val)->typeName +
-           ">";
+    ">";
 
   return "<unknown>";
 }
@@ -180,35 +161,9 @@ inline std::string valueToString(const Value &val) {
 inline bool isTruthy(const Value &val) {
   if (std::holds_alternative<std::monostate>(val))
     return false;
-  if (std::holds_alternative<double>(val))
-    return (std::get<double>(val) == 0) ? false : true;
   if (std::holds_alternative<bool>(val))
     return std::get<bool>(val);
   return true;
 }
 
-inline bool isEqual(const Value &a, const Value &b) {
-  if (std::holds_alternative<std::shared_ptr<NinArray>>(a) &&
-      std::holds_alternative<std::shared_ptr<NinArray>>(b)) {
-    return std::get<std::shared_ptr<NinArray>>(a).get() ==
-           std::get<std::shared_ptr<NinArray>>(b).get();
-  }
-  return a == b;
-}
-
-inline bool isInt(double d) {
-  uint64_t bits;
-  std::memcpy(&bits, &d, sizeof(bits));
-
-  int32_t exponent = ((bits >> 52) & 0x7FF) - 1023;
-
-  if (exponent >= 52) {
-    return exponent == 1024 ? false : true;
-  }
-  if (exponent < 0) {
-    return d == 0.0;
-  }
-
-  uint64_t fractional_mask = (1ULL << (52 - exponent)) - 1;
-  return (bits & fractional_mask) == 0;
-}
+extern "C" { void carrot_module_init(std::unordered_map<std::string, Value> *out); }

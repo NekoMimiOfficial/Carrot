@@ -126,7 +126,9 @@ void Interpreter::execute(Stmt *stmt) {
     try {
       while (isTruthy(evaluate(s->condition.get()))) {
         try {
-          execute(s->body.get());
+          auto loopEnv = std::make_shared<Environment>(env);
+          executeBlock(dynamic_cast<BlockStmt *>(s->body.get())->statements,
+                       loopEnv);
         } catch (ContinueException &) {
         }
       }
@@ -148,7 +150,9 @@ void Interpreter::execute(Stmt *stmt) {
             break;
 
           try {
-            execute(s->body.get());
+            auto loopEnv = std::make_shared<Environment>(env);
+            executeBlock(dynamic_cast<BlockStmt *>(s->body.get())->statements,
+                         loopEnv);
           } catch (ContinueException &) {
           }
 
@@ -559,8 +563,26 @@ Value Interpreter::evaluate(Expr *expr) {
     for (auto &arg : e->arguments)
       args.push_back(evaluate(arg.get()));
 
+    auto capturedClosure = ninFn->closure;
+    auto capturedDecl = ninFn->decl;
+
     auto coro = std::make_shared<NinCoroutine>(
-        [fn, args]() mutable { return fn->call(args); });
+        [capturedDecl, capturedClosure, args]() mutable -> Value {
+          Interpreter coroInterp(".");
+          coroInterp.globals = capturedClosure;
+          coroInterp.env = capturedClosure;
+
+          auto funcEnv = std::make_shared<Environment>(capturedClosure);
+          for (int i = 0; i < (int)capturedDecl->params.size(); i++)
+            funcEnv->define(capturedDecl->params[i].lexeme, args[i]);
+
+          try {
+            coroInterp.executeBlock(capturedDecl->body, funcEnv);
+          } catch (ReturnException &ret) {
+            return ret.value;
+          }
+          return std::monostate{};
+        });
 
     auto klass = std::make_shared<NinClass>("coroutine");
     auto inst = std::make_shared<NinInstance>(klass);
@@ -582,8 +604,10 @@ Value Interpreter::evaluate(Expr *expr) {
       int arity() override { return 1; }
       std::string name() override { return "yield"; }
       Value call(std::vector<Value> args) override {
-        if (coro->state == NinCoroutine::State::DONE)
-          return coro->returnValue;
+        if (coro->state == NinCoroutine::State::DONE) {
+          coroutineJoin(coro);
+          return coro->getReturn();
+        }
         return args[0];
       }
     };

@@ -6,6 +6,7 @@ Carrot is a UI toolkit with support for a special interpreted OOP language calle
 Ninjin is a simple language to learn with sensible expression evaluation and is brackets and semi-colon dependent, it brings you the simplicity of an easy language like python but with good syntax and never has you guessing what the outcome of an expression would be!  
 
 # Grammar  
+
 | Keyword | Example | Description |
 | --------------- | --------------- | --------------- |
 | `let` | `let x = 1;` | Defines a variable. |
@@ -18,9 +19,16 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `DOT` | `x.object` | Access an object from a module or class. |
 | `async` | `async fun x() {}` | Defines an asynchronous function. |
 | `coroutine` | `let x = coroutine y();` | Creates a coro instance of an async function. |
+| `const` | | |
+| `global` | | |
+| `override` | | |
+| `COLON` | | |
+| `free` | | |
+| `print` | | |
 
 
 # Built-ins  
+
 | Fn Name | Arguments | Description |
 | --------------- | --------------- | --------------- |
 | `import()` | {string} | Imports a nin module. |
@@ -28,6 +36,7 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `input()` | {string} | Asks the user to input data, returns a string, accepts an input prompt. |
 | `system()` | {string} | Executes a command on the system shell, returns the exit status code. |
 | `argv()` | {} | Returns an array of the argv. |
+| `exit()` | {int} | Exits the app with the provided exit code. |
 | `coroutine.run()` | {} | Runs a coroutine instance. |
 | `coroutine.yield()` | {AnyType} | Yields the result of the coroutine if it has finished or the passed value if not. |
 | `clock()` | {} | Returns the unix epoch time. |
@@ -37,3 +46,4 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `len()` | {string|array} | Returns the length of an array or string. |
 | `push()` | {array, AnyType} | Pushes a value to the end of an array. |
 | `pop()` | {array} | Pops the last value off an array. |
+
