@@ -26,3 +26,15 @@ if (c.area() > 50) {
 } else {
     print("small circle!");
 }
+
+print("starting local bootstrap");
+let nin1 = import("bootstrap.nin");
+let s1 = new nin1.Stack();
+s1.push(4);
+print("popped s1: " + s1.pop());
+
+print("starting global bootstrap");
+let nin2 = import("@bootstrap.nin");
+let s2 = new nin2.Stack();
+s2.push(8);
+print("popped s2: " + s2.pop());

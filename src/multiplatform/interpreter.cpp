@@ -55,7 +55,6 @@ Interpreter::Interpreter(std::string sourceDir,
   auto argvArray = std::make_shared<NinArray>(std::move(argvValues));
 
   // builtin registration is done here
-  reg(std::make_shared<LoadModuleFn>());
   reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
 
   reg(std::make_shared<InputFn>());
@@ -71,11 +70,6 @@ Interpreter::Interpreter(std::string sourceDir,
   reg(std::make_shared<LenFn>());
   reg(std::make_shared<PushFn>());
   reg(std::make_shared<PopFn>());
-
-  // loading the bootstrap module
-  ImportFn bootstrapImporter(this, sourceDir);
-  Value bootstrapMod = bootstrapImporter.call({std::string("@bootstrap.nin")});
-  globals->define("nin", bootstrapMod);
 
   // external platform callable loader
   registerPlatformBuiltins(this);

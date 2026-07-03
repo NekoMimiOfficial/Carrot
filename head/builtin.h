@@ -145,18 +145,12 @@ struct ImportFn : NinCallable {
   Interpreter *interp;
   std::string callerDir;
 
-  ImportFn(Interpreter *interp, std::string callerDir)
+  explicit ImportFn(Interpreter *interp, std::string callerDir)
       : interp(interp), callerDir(std::move(callerDir)) {}
 
   int arity() override { return 1; }
   std::string name() override { return "import"; }
 
-  Value call(std::vector<Value> args) override;
-};
-
-struct LoadModuleFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "loadmodule"; }
   Value call(std::vector<Value> args) override;
 };
 

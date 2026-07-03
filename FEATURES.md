@@ -11,7 +11,6 @@
 - [x] coroutines.  
 - [ ] shared global library.  
 - [x] argv.  
-- [ ] nin bootstrap.  
 - [ ] try/catch.  
 - [x] custom types.  
 - [x] free types.  
@@ -25,6 +24,7 @@
 - [x] function overriding.  
 - [ ] scope GC.  
 - [x] sleep.  
+- [x] platform dependant builtins.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  
