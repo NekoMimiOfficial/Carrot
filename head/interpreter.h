@@ -26,6 +26,15 @@ public:
 
   std::shared_ptr<Environment> globals;
 
+  void registerBuiltin(std::string name, Value val)
+  { globals->define(name, val); }
+
+  void registerBuiltinFn(std::shared_ptr<NinCallable> fn)
+  { globals->define(fn->name(), fn); }
+
+  void registerBuiltinClass(std::shared_ptr<NinClass> classInst)
+  { globals->define(classInst->className, classInst); }
+
 private:
   std::shared_ptr<Environment> env;
 

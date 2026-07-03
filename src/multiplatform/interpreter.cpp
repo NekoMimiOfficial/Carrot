@@ -2,6 +2,7 @@
 #include "builtin.h"
 #include "coroutine.h"
 #include "value.h"
+#include "platform.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -75,6 +76,9 @@ Interpreter::Interpreter(std::string sourceDir,
   ImportFn bootstrapImporter(this, sourceDir);
   Value bootstrapMod = bootstrapImporter.call({std::string("@bootstrap.nin")});
   globals->define("nin", bootstrapMod);
+
+  // external platform callable loader
+  registerPlatformBuiltins(this);
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {

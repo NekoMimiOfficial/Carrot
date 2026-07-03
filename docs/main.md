@@ -19,12 +19,11 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `DOT` | `x.object` | Access an object from a module or class. |
 | `async` | `async fun x() {}` | Defines an asynchronous function. |
 | `coroutine` | `let x = coroutine y();` | Creates a coro instance of an async function. |
-| `const` | | |
-| `global` | | |
-| `override` | | |
-| `COLON` | | |
-| `free` | | |
-| `print` | | |
+| `const` | `const PI = 3.14;` | Defines a variable as a constant. |
+| `global` | `global i = 0;` | Defines a global variable to the current and child scopes. |
+| `override` | `override fun function_inside_a_class() {}` | Overrides a function inside a class, usually inherited. |
+| `COLON` | `classGen2 : classGen1 {}` | Inherits a base class. |
+| `free` | `free i;` | Frees a declaration from the environment. |
 
 
 # Built-ins  
@@ -37,6 +36,7 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `system()` | {string} | Executes a command on the system shell, returns the exit status code. |
 | `argv()` | {} | Returns an array of the argv. |
 | `exit()` | {int} | Exits the app with the provided exit code. |
+| `sleep()` | {int} | Sleeps for a defined amount of milliseconds |
 | `coroutine.run()` | {} | Runs a coroutine instance. |
 | `coroutine.yield()` | {AnyType} | Yields the result of the coroutine if it has finished or the passed value if not. |
 | `clock()` | {} | Returns the unix epoch time. |

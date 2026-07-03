@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "platform_core_builtins.h"
+
 struct ClockFn : NinCallable {
   int arity() override { return 0; }
   std::string name() override { return "clock"; }
