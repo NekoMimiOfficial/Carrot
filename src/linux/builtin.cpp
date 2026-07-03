@@ -8,6 +8,7 @@
 #include <string>
 #include <filesystem>
 #include <sys/types.h>
+#include <unistd.h>
 
 using InitFn = void (*)(std::unordered_map<std::string, Value> *);
 
@@ -93,4 +94,17 @@ Value ExitFn::call(std::vector<Value> args) {
   { throw std::runtime_error("exit(): argument must be an integer"); }
   int ret_code = static_cast<int>(get_arg);
   exit(ret_code);
+}
+
+Value SleepFn::call(std::vector<Value> args) {
+  if (!(std::holds_alternative<double>(args[0])))
+  { throw std::runtime_error("sleep(): argument must be an integer"); }
+  double get_arg = std::get<double>(args[0]);
+  if (!(isInt(get_arg)))
+  { throw std::runtime_error("sleep(): argument must be an integer"); }
+
+  int sleep_ms = static_cast<int>(get_arg);
+  usleep(sleep_ms * 1000);
+
+  return std::monostate();
 }

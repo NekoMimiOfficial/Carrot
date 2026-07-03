@@ -24,6 +24,7 @@
 - [x] class inheritance.  
 - [x] function overriding.  
 - [ ] scope GC.  
+- [x] sleep.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  

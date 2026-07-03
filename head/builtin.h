@@ -1,7 +1,6 @@
 #pragma once
 #include "interpreter.h"
 #include "lexer.h"
-#include "networking.h"
 #include "parser.h"
 #include "value.h"
 #include <chrono>
@@ -171,5 +170,11 @@ struct ArgvFn : NinCallable {
 struct ExitFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "exit"; }
+  Value call(std::vector<Value> args) override;
+};
+
+struct SleepFn : NinCallable {
+  int arity() override { return 1; }
+  std::string name() override { return "sleep"; }
   Value call(std::vector<Value> args) override;
 };

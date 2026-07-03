@@ -62,6 +62,7 @@ Interpreter::Interpreter(std::string sourceDir,
   reg(std::make_shared<ClockFn>());
   reg(std::make_shared<ArgvFn>(argvArray));
   reg(std::make_shared<ExitFn>());
+  reg(std::make_shared<SleepFn>());
 
   reg(std::make_shared<StrFn>());
   reg(std::make_shared<NumFn>());
