@@ -35,6 +35,8 @@ public:
   void registerBuiltinClass(std::shared_ptr<NinClass> classInst)
   { globals->define(classInst->className, classInst); }
 
+  void reset(std::string sourceDir, std::vector<std::string> argv = {});
+
 private:
   std::shared_ptr<Environment> env;
 

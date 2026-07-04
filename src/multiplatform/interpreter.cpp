@@ -1,8 +1,8 @@
 #include "interpreter.h"
 #include "builtin.h"
 #include "coroutine.h"
-#include "value.h"
 #include "platform.h"
+#include "value.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -40,8 +40,8 @@ struct NinFunction : NinCallable {
   }
 };
 
-Interpreter::Interpreter(std::string sourceDir,
-                         std::vector<std::string> argvIn) {
+void Interpreter::reset(std::string sourceDir,
+                        std::vector<std::string> argvIn) {
   globals = std::make_shared<Environment>();
   env = globals;
 
@@ -73,6 +73,11 @@ Interpreter::Interpreter(std::string sourceDir,
 
   // external platform callable loader
   registerPlatformBuiltins(this);
+}
+
+Interpreter::Interpreter(std::string sourceDir,
+                         std::vector<std::string> argvIn) {
+  reset(std::move(sourceDir), std::move(argvIn));
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {

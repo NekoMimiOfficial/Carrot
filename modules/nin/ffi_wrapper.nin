@@ -1,0 +1,12 @@
+let sdl = loadmodule("@libcarrot_sdl.so");
+
+fun openWin() {
+  sdl.init();
+  sdl.createWindow("Carrot", 320, 240);
+  sdl.clear(30, 30, 30);
+  sdl.present();
+}
+
+fun closeWin() {
+  sdl.quit();
+}

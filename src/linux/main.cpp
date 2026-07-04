@@ -54,7 +54,7 @@ void runFile(const std::string &path, std::vector<std::string> args) {
   std::string dir = std::filesystem::path(path).parent_path().string();
   if (dir.empty())
     dir = ".";
-  interpreter = Interpreter(dir, args);
+  interpreter.reset(dir, args);
 
   std::ostringstream ss;
   ss << file.rdbuf();
@@ -65,7 +65,7 @@ void runFile(const std::string &path, std::vector<std::string> args) {
 }
 
 void runREPL(std::vector<std::string> args) {
-  interpreter = Interpreter(".", args);
+  interpreter.reset(".", args);
 
   std::cout << "Carrot " << AppVer.maj << "." << AppVer.min << "." << AppVer.fix
             << " [" << AppVer.codename << "] (main, " << AppVer.date

@@ -10,6 +10,6 @@ struct LinuxFn : NinCallable {
   std::string name() override { return "__builtin_fn_7400"; }
   Value call(std::vector<Value>) override {
     std::cout << "DOOM?? pfft- the new benchmark is \"Does it run Carrot\" :3c\n";
-    return std::monostate();
+    return std::monostate{};
   }
 };
