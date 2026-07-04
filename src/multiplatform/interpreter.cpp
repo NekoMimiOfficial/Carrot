@@ -451,6 +451,8 @@ Value Interpreter::evaluate(Expr *expr) {
     if (!std::holds_alternative<std::shared_ptr<NinArray>>(obj))
       throw std::runtime_error("Can only index-assign into arrays.");
     auto arr = std::get<std::shared_ptr<NinArray>>(obj);
+    if (arr->isConst)
+      throw std::runtime_error("Cannot modify a const array.");
     if (!std::holds_alternative<double>(idx))
       throw std::runtime_error("Array index must be a number.");
     int i = (int)std::get<double>(idx);
