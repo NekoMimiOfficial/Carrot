@@ -571,17 +571,13 @@ Value Interpreter::evaluate(Expr *expr) {
     auto capturedDecl = ninFn->decl;
 
     auto coro = std::make_shared<NinCoroutine>(
-        [capturedDecl, capturedClosure, args]() mutable -> Value {
-          Interpreter coroInterp(".");
-          coroInterp.globals = capturedClosure;
-          coroInterp.env = capturedClosure;
-
+        [this, capturedDecl, capturedClosure, args]() mutable -> Value {
           auto funcEnv = std::make_shared<Environment>(capturedClosure);
           for (int i = 0; i < (int)capturedDecl->params.size(); i++)
             funcEnv->define(capturedDecl->params[i].lexeme, args[i]);
 
           try {
-            coroInterp.executeBlock(capturedDecl->body, funcEnv);
+            executeBlock(capturedDecl->body, funcEnv);
           } catch (ReturnException &ret) {
             return ret.value;
           }

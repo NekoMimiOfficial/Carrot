@@ -15,7 +15,6 @@ struct ContinueException {};
 
 class Interpreter {
 public:
-  Interpreter();
   Interpreter(std::string sourceDir = ".", std::vector<std::string> argv = {});
   void interpret(const std::vector<StmtPtr> &statements);
 
