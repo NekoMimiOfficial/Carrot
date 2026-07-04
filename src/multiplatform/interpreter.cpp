@@ -131,8 +131,19 @@ void Interpreter::execute(Stmt *stmt) {
       while (isTruthy(evaluate(s->condition.get()))) {
         try {
           auto loopEnv = std::make_shared<Environment>(env);
-          executeBlock(dynamic_cast<BlockStmt *>(s->body.get())->statements,
-                       loopEnv);
+          if (auto *block = dynamic_cast<BlockStmt *>(s->body.get())) {
+            executeBlock(block->statements, loopEnv);
+          } else {
+            auto prevEnv = env;
+            env = loopEnv;
+            try {
+              execute(s->body.get());
+            } catch (...) {
+              env = prevEnv;
+              throw;
+            }
+            env = prevEnv;
+          }
         } catch (ContinueException &) {
         }
       }
@@ -155,8 +166,19 @@ void Interpreter::execute(Stmt *stmt) {
 
           try {
             auto loopEnv = std::make_shared<Environment>(env);
-            executeBlock(dynamic_cast<BlockStmt *>(s->body.get())->statements,
-                         loopEnv);
+            if (auto *block = dynamic_cast<BlockStmt *>(s->body.get())) {
+              executeBlock(block->statements, loopEnv);
+            } else {
+              auto prevEnv = env;
+              env = loopEnv;
+              try {
+                execute(s->body.get());
+              } catch (...) {
+                env = prevEnv;
+                throw;
+              }
+              env = prevEnv;
+            }
           } catch (ContinueException &) {
           }
 

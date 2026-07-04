@@ -25,6 +25,7 @@
 - [ ] scope GC.  
 - [x] sleep.  
 - [x] platform dependant builtins.  
+- [ ] continue and break.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  

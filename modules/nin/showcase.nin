@@ -168,6 +168,7 @@ while (waiting) {
     if (result != nil) {
         waiting = false;
     }
+    sleep(300);
 }
 
 print("Cat fact: " + result);
