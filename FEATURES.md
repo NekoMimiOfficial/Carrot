@@ -9,7 +9,7 @@
 - [x] imports.  
 - [x] C++ API.  
 - [x] coroutines.  
-- [ ] shared global library.  
+- [x] shared global library.  
 - [x] argv.  
 - [ ] try/catch.  
 - [x] custom types.  
