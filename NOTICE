@@ -1,0 +1,9 @@
+--------------------------------------------------------------------------------
+			   Carrot NOTICE file
+--------------------------------------------------------------------------------
+
+This product includes software developed by Deva Midhun <github.com/turbomaster95>.
+Copyright (c) 2026 Deva Midhun. All rights reserved.
+
+The entropy module (entropy.c, entropy.h) was contributed by Deva Midhun and is 
+provided under the terms of the Apache License, Version 2.0.
