@@ -1,0 +1,38 @@
+let _e = loadmodule("@libcarrot_entropy.so");
+
+fun sha256(text) { 
+  return _e.sha256(text); 
+}
+
+fun random() { 
+  return _e.random(); 
+}
+
+fun randrange(max) { 
+  return _e.randrange(max); 
+}
+
+fun randstr(len) { 
+  return _e.randomString(len); 
+}
+
+fun randbytes(len) { 
+  return _e.randomBytes(len); 
+}
+
+fun randu32() { 
+  return _e.randomU32(); 
+}
+
+fun createHasher() { 
+  return _e.createSha256(); 
+}
+
+fun createDrbg(personalization) { 
+  if (personalization == nil) personalization = "";
+  return _e.createDrbg(personalization); 
+}
+
+fun createPool() { 
+  return _e.createEntropyPool(); 
+}
