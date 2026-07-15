@@ -26,6 +26,7 @@
 - [x] sleep.  
 - [x] platform dependant builtins.  
 - [ ] continue and break.  
+- [ ] builtin class function overrides for assisted builtin custom types.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  
