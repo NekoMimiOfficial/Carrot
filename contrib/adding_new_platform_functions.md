@@ -1,5 +1,5 @@
 # How to add a platform Callable  
-Core callables are functions always defined by the interpreter at runtime, not through the bootstrap **and exist only for a specific platform**.  
+Platform callables are functions always defined by the interpreter at runtime, not through the bootstrap **and exist only for a specific platform**.  
 This means if you're porting Carrot to a platform that you want to extend some special capabilities (like GPIO pins on an ESP32) you can do so without affecting the main builtins or interpreter code  
 To make this possible we've made sure that our API was as user-friendly as possible so we've created 3 methods for you to use!  
 `registerBuiltin`, `registerBuiltinFn` and `registerBuiltinClass`  

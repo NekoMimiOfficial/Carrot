@@ -1,0 +1,6 @@
+vita.sdl_init();
+vita.sdl_clear(30, 30, 30);
+vita.sdl_present();
+sleep(5000);
+vita.sdl_cleanup();
+exit(0);

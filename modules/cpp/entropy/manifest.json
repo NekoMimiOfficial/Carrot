@@ -1,0 +1,11 @@
+{
+  "name": "entropy",
+  "version": "1.0.0",
+  "author": "Deva Midhun",
+  "email": "",
+  "supports": "1.0.0",
+  "type": "FFI::CPP",
+  "licenses": {"APACHE2": "LICENSE"},
+  "readme": "README.md",
+  "description": "official core entropy module",
+}

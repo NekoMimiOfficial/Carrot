@@ -1,0 +1,19 @@
+{
+  "sha256": ["NinCallable", 1, ["String"], ""],
+  "sha256Bytes": ["NinCallable", 1, ["String"], ""],
+  "createSha256": ["NinCallable", 0, [], ""],
+
+  "randomBytes": ["NinCallable", 0, [], ""],
+  "randomU32": ["NinCallable", 0, [], ""],
+  "randomU64": ["NinCallable", 0, [], ""],
+  "randomString": ["NinCallable", 0, [], ""],
+  "random": ["NinCallable", 0, [], ""],
+  "randrange": ["NinCallable", 0, [], ""],
+
+  "gatherHardwareEntropy": ["NinCallable", 0, [], ""],
+  "hasRdrand": ["NinCallable", 0, [], ""],
+  "hasRdseed": ["NinCallable", 0, [], ""],
+
+  "createDrbg": ["NinCallable", 0, [], ""],
+  "createEntropyPool": ["NinCallable", 0, [], ""]
+}

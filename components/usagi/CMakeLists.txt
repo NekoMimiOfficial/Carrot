@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(carrot VERSION 1.0.0)
+project(usagi VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -35,14 +35,14 @@ else()
 endif()
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../meta.c++"
     "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
     @ONLY
 )
 # ~~~~~~~~~~~~
 
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME}
   ${NOARCH_SRC}
   ${PLATFORM_SRC}
   ${PLATFORM_CORE}
@@ -54,6 +54,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${SDL2_INCLUDE_DIRS}
   ${READLINE_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  PUBLIC_HEADER ../../head/*.h
 )
 
 if (BUILD_LINUX)

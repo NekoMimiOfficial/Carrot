@@ -39,3 +39,4 @@
 - [ ] GUI.  
 - [ ] Filesystem.  
 - [ ] TermTools.  
+- [x] Entropy.  

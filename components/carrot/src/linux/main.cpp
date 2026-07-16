@@ -1,7 +1,7 @@
 #include "interpreter.h"
 #include "lexer.h"
-#include "meta.cpp"
 #include "parser.h"
+#include "meta.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -67,9 +67,9 @@ void runFile(const std::string &path, std::vector<std::string> args) {
 void runREPL(std::vector<std::string> args) {
   interpreter.reset(".", args);
 
-  std::cout << "Carrot " << AppVer.maj << "." << AppVer.min << "." << AppVer.fix
-            << " [" << AppVer.codename << "] (main, " << AppVer.date
-            << ") [GCC " << AppVer.gccver << "] on linux\n";
+  std::cout << "Carrot " << c_assemble_appver.maj << "." << c_assemble_appver.min << "." << c_assemble_appver.fix
+            << " [" << c_assemble_appver.codename << "] (main, " << c_assemble_appver.date
+            << ") [GCC " << c_assemble_appver.gccver << "] on linux\n";
   std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n\n";
 
   char *rawInput = nullptr;
