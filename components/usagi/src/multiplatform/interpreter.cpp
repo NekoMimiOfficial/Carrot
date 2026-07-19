@@ -213,6 +213,11 @@ void Interpreter::execute(Stmt *stmt) {
   } else if (dynamic_cast<BreakStmt *>(stmt)) {
     throw BreakException{};
 
+  } else if (auto *s = dynamic_cast<MutexDecl *>(stmt)) {
+    Value val =
+        s->initializer ? evaluate(s->initializer.get()) : std::monostate{};
+    env->defineMutex(s->name.lexeme, std::move(val));
+
   } else if (auto *s = dynamic_cast<ClassStmt *>(stmt)) {
     std::shared_ptr<NinClass> superclass = nullptr;
     if (s->superclass) {

@@ -17,7 +17,7 @@
 - [x] exit function.  
 - [x] constants.  
 - [ ] function argument default value.  
-- [ ] mutex locks.  
+- [x] mutex locks.  
 - [x] global variables.  
 - [x] scope isolation.  
 - [x] class inheritance.  

@@ -17,6 +17,7 @@ private:
   StmtPtr declaration();
   StmtPtr globalDeclaration();
   StmtPtr constDeclaration();
+  StmtPtr mutexDeclaration();
   StmtPtr varDeclaration();
   StmtPtr funDeclaration();
   StmtPtr freeStatement();

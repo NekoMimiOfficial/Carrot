@@ -17,6 +17,8 @@ StmtPtr Parser::declaration() {
     return varDeclaration();
   if (match({TokenType::CONST}))
     return constDeclaration();
+  if (match({TokenType::MUTEX_KW}))
+    return mutexDeclaration();
   if (match({TokenType::ASYNC})) {
     consume(TokenType::FUN, "Expected 'fun' after 'async'.");
     return asyncFunctionDeclaration();
@@ -57,6 +59,15 @@ StmtPtr Parser::constDeclaration() {
   ExprPtr init = expression();
   consume(TokenType::SEMICOLON, "Expected ';' after const declaration.");
   return std::make_unique<ConstDecl>(std::move(name), std::move(init));
+}
+
+StmtPtr Parser::mutexDeclaration() {
+  Token name =
+      consume(TokenType::IDENTIFIER, "Expected variable name after 'mutex'.");
+  consume(TokenType::EQUAL, "Expected '=' after mutex variable name.");
+  ExprPtr init = expression();
+  consume(TokenType::SEMICOLON, "Expected ';' after mutex declaration.");
+  return std::make_unique<MutexDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::funDeclaration() {

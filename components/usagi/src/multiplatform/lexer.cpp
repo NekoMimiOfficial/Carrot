@@ -26,6 +26,7 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"free", TokenType::FREE},
     {"override", TokenType::OVERRIDE},
     {"super", TokenType::SUPER},
+    {"mutex", TokenType::MUTEX_KW},
 };
 
 Lexer::Lexer(const std::string &source) : source(source) {}

@@ -1,6 +1,7 @@
 #pragma once
 #include "value.h"
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -46,25 +47,36 @@ public:
     values[name] = std::move(value);
   }
 
-  Value &get(const std::string &name) {
-    auto it = values.find(name);
-    if (it != values.end())
-      return it->second;
-
-    if (parent)
-      return parent->get(name);
-
-    throw std::runtime_error("Undefined variable '" + name + "'.");
+  void defineMutex(const std::string &name, Value value) {
+    Environment *e = this;
+    while (e) {
+      if (e->values.count(name))
+        throw std::runtime_error("'" + name + "' is already defined.");
+      e = e->parent.get();
+    }
+    mutexVars[name] = std::make_shared<std::mutex>();
+    globals.insert(name);
+    values[name] = std::move(value);
   }
 
-  const Value &get(const std::string &name) const {
+  Value get(const std::string &name) {
+    auto mtx = getMutex(name);
+    if (mtx) {
+      std::lock_guard<std::mutex> lock(*mtx);
+      Environment *e = this;
+      while (e) {
+        auto it = e->values.find(name);
+        if (it != e->values.end())
+          return it->second;
+        e = e->parent.get();
+      }
+      throw std::runtime_error("Undefined variable '" + name + "'.");
+    }
     auto it = values.find(name);
     if (it != values.end())
       return it->second;
-
     if (parent)
       return parent->get(name);
-
     throw std::runtime_error("Undefined variable '" + name + "'.");
   }
 
@@ -74,6 +86,21 @@ public:
       if (e->consts.count(name))
         throw std::runtime_error("Cannot assign to const '" + name + "'.");
       e = e->parent.get();
+    }
+
+    auto mtx = getMutex(name);
+    if (mtx) {
+      std::lock_guard<std::mutex> lock(*mtx);
+      e = this;
+      while (e) {
+        if (e->globals.count(name)) {
+          e->values[name] = std::move(value);
+          return;
+        }
+        e = e->parent.get();
+      }
+      throw std::runtime_error("Cannot assign to undefined variable '" + name +
+                               "'.");
     }
 
     e = this;
@@ -110,6 +137,7 @@ public:
         e->values.erase(name);
         e->consts.erase(name);
         e->globals.erase(name);
+        e->mutexVars.erase(name);
         return;
       }
       e = e->parent.get();
@@ -131,10 +159,22 @@ public:
     return false;
   }
 
+  std::shared_ptr<std::mutex> getMutex(const std::string &name) const {
+    const Environment *e = this;
+    while (e) {
+      auto it = e->mutexVars.find(name);
+      if (it != e->mutexVars.end())
+        return it->second;
+      e = e->parent.get();
+    }
+    return nullptr;
+  }
+
   std::unordered_map<std::string, Value> exportAll() const { return values; }
 
 private:
   std::unordered_map<std::string, Value> values;
   std::unordered_set<std::string> globals;
   std::unordered_set<std::string> consts;
+  std::unordered_map<std::string, std::shared_ptr<std::mutex>> mutexVars;
 };

@@ -56,6 +56,7 @@ enum class TokenType {
   THIS,
   GLOBAL,
   CONST,
+  MUTEX_KW,
   OVERRIDE,
   SUPER,
 
