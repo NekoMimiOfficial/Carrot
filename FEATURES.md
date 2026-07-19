@@ -27,6 +27,7 @@
 - [x] platform dependant builtins.  
 - [ ] continue and break.  
 - [ ] builtin class function overrides for assisted builtin custom types.  
+- [ ] improved coro: stop() pause() resume()
 
 # List of included modules and TODOs  
 - [ ] Networking.  

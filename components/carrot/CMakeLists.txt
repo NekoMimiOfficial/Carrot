@@ -3,11 +3,26 @@ project(carrot VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(BUILD_SHARED "Builds from the shared usagi core." ON)
 option(BUILD_LINUX "Build for Linux." ON)
 
 include_directories("../usagi/head")
 
-find_library(USAGI NAMES usagi PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libusagi.a into the build dir for this to work
+if(BUILD_LINUX)
+  if(BUILD_SHARED)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+  endif()
+endif()
+
+if(BUILD_SHARED)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set(CMAKE_BUILD_RPATH "$ORIGIN")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
+endif()
+
+find_package(PkgConfig REQUIRED)
+find_library(USAGI NAMES usagi PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libusagi.a/libusagi.so into the build dir for this to work
 
 if (BUILD_LINUX)
   pkg_check_modules(READLINE REQUIRED readline)

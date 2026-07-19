@@ -16,6 +16,10 @@ What do the names refer to? simple!
 **Nekko** is the embeddable interpreter.  
 **Usagi** is the compiler.  
 
+# Important note for contributors and developers  
+All the docs and help you might need are contained within the `contrib` folder, please give that a read  
+If you still have any question do reach out so we can add it to the contrib folder <3  
+
 # Why is the entire project in one repo?  
 You may wonder why the Carrot (interpreter) repo is not part of an organisation and why other components of the Ninjin language also reside here which includes Nekko (embeddable interpreter) and Usagi (compiler)  
 We have a couple reasons, first our main brand is the compiler itself, all the other components are side components and rebranding at this point is a bad idea, It doesn't fit if we made a umbrella term for the Ninjin suite in this stage of the development  

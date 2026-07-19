@@ -3,6 +3,7 @@ project(usagi VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(BUILD_SHARED "Builds a shared library." ON)
 option(BUILD_LINUX "Build for Linux." ON)
 
 include_directories(head)
@@ -11,6 +12,7 @@ include_directories("src/multiplatform")
 find_package(SDL2 REQUIRED)
 find_package(CURL REQUIRED)
 find_package(Threads REQUIRED)
+find_package(PkgConfig REQUIRED)
 
 if (BUILD_LINUX)
   pkg_check_modules(READLINE REQUIRED readline)
@@ -42,13 +44,23 @@ configure_file(
 # ~~~~~~~~~~~~
 
 
-add_library(${PROJECT_NAME}
-  ${NOARCH_SRC}
-  ${PLATFORM_SRC}
-  ${PLATFORM_CORE}
-  ${RUNTIME_SRC}
-  "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
-)
+if (BUILD_SHARED)
+  add_library(${PROJECT_NAME} SHARED
+    ${NOARCH_SRC}
+    ${PLATFORM_SRC}
+    ${PLATFORM_CORE}
+    ${RUNTIME_SRC}
+    "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
+  )
+else()
+  add_library(${PROJECT_NAME} STATIC
+    ${NOARCH_SRC}
+    ${PLATFORM_SRC}
+    ${PLATFORM_CORE}
+    ${RUNTIME_SRC}
+    "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
+  )
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${SDL2_INCLUDE_DIRS}
