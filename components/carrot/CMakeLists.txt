@@ -22,7 +22,7 @@ if(BUILD_SHARED)
 endif()
 
 find_package(PkgConfig REQUIRED)
-find_library(USAGI NAMES usagi PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libusagi.a/libusagi.so into the build dir for this to work
+find_library(NEKKO NAMES nekko PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libnekko.a/libnekko.so into the build dir for this to work
 
 if (BUILD_LINUX)
   pkg_check_modules(READLINE REQUIRED readline)
@@ -40,7 +40,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 if (BUILD_LINUX)
   target_link_libraries(${PROJECT_NAME} PRIVATE
     ${READLINE_LIBRARIES}
-    ${USAGI}
+    ${NEKKO}
   )
 
   target_compile_definitions(${PROJECT_NAME} PUBLIC BUILD_LINUX)

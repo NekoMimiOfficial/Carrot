@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
-project(carrot VERSION 1.0.0)
+project(nekko VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(BUILD_DBGSYM "Enables dbgsym." ON)
+option(BUILD_SHARED "Builds a shared library." ON)
 option(BUILD_LINUX "Build for Linux." ON)
+
+if(BUILD_DBGSYM)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+endif()
 
 include_directories(head)
 include_directories("src/multiplatform")
@@ -11,6 +17,7 @@ include_directories("src/multiplatform")
 find_package(SDL2 REQUIRED)
 find_package(CURL REQUIRED)
 find_package(Threads REQUIRED)
+find_package(PkgConfig REQUIRED)
 
 if (BUILD_LINUX)
   pkg_check_modules(READLINE REQUIRED readline)
@@ -35,25 +42,41 @@ else()
 endif()
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/meta.cpp.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../meta.c++"
     "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
     @ONLY
 )
 # ~~~~~~~~~~~~
 
 
-add_executable(${PROJECT_NAME}
-  ${NOARCH_SRC}
-  ${PLATFORM_SRC}
-  ${PLATFORM_CORE}
-  ${RUNTIME_SRC}
-  "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
-)
+if (BUILD_SHARED)
+  add_library(${PROJECT_NAME} SHARED
+    ${NOARCH_SRC}
+    ${PLATFORM_SRC}
+    ${PLATFORM_CORE}
+    ${RUNTIME_SRC}
+    "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
+  )
+else()
+  add_library(${PROJECT_NAME} STATIC
+    ${NOARCH_SRC}
+    ${PLATFORM_SRC}
+    ${PLATFORM_CORE}
+    ${RUNTIME_SRC}
+    "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
+  )
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${SDL2_INCLUDE_DIRS}
   ${READLINE_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  PUBLIC_HEADER ../../head/*.h
 )
 
 if (BUILD_LINUX)

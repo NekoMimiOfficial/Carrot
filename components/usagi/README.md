@@ -1,4 +1,2 @@
-# Usagi  
-This is your main engine, the embeddable core into all other projects, including 3rd-party software  
-With this you can embed the Carrot engine (Usagi) into any app you wish and create a bridge between them  
-Usagi supports all the features Carrot does, in fact Carrot runs on Usagi.  
+# Nekko  
+Nekko is a compiler for Ninjin, it takes the language and turns it into an executable, even tho Carrot is fast but Usagi is still faster.  
