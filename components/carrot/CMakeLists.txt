@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 option(BUILD_SHARED "Builds from the shared usagi core." ON)
 option(BUILD_LINUX "Build for Linux." ON)
 
-include_directories("../usagi/head")
+include_directories("../nekko/head")
 
 if(BUILD_LINUX)
   if(BUILD_SHARED)
