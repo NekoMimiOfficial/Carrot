@@ -1,5 +1,4 @@
 #pragma once
-#include "ast.h"
 #include <atomic>
 #include <cmath>
 #include <cstring>
@@ -45,7 +44,6 @@ struct NinCallable {
 
 struct NinModule {
   std::string sourcePath;
-  std::vector<StmtPtr> ast;
   std::unordered_map<std::string, Value> members;
   void *handle = nullptr;
 

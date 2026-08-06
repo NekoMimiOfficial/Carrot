@@ -10,6 +10,11 @@
 #include <unistd.h>
 #include <variant>
 
+static std::vector<std::vector<StmtPtr>> &importedAsts() {
+  static std::vector<std::vector<StmtPtr>> registry;
+  return registry;
+}
+
 Value ImportFn::call(std::vector<Value> args) {
   if (!std::holds_alternative<std::string>(args[0]))
     throw std::runtime_error("import(): argument must be a string path.");
@@ -43,11 +48,14 @@ Value ImportFn::call(std::vector<Value> args) {
 
   auto mod = std::make_shared<NinModule>();
   mod->sourcePath = path.string();
-  mod->ast = std::move(stmts);
+
+  importedAsts().push_back(std::move(stmts));
+  auto &keptStmts = importedAsts().back();
 
   auto modEnv = std::make_shared<Environment>(interp->globals);
-  interp->executeBlock(mod->ast, modEnv);
+  interp->executeBlock(keptStmts, modEnv);
   mod->members = modEnv->exportAll();
+
   return mod;
 }
 

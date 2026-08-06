@@ -15,6 +15,7 @@ public:
       : parent(std::move(parent)) {}
 
   void define(const std::string &name, Value value) {
+    std::lock_guard<std::mutex> lock(globalLock());
     Environment *e = this;
     while (e) {
       if (e->values.count(name))
@@ -25,6 +26,7 @@ public:
   }
 
   void defineGlobal(const std::string &name, Value value) {
+    std::lock_guard<std::mutex> lock(globalLock());
     Environment *e = this->parent ? this->parent.get() : this;
     while (e) {
       if (e->globals.count(name))
@@ -37,6 +39,7 @@ public:
   }
 
   void defineConst(const std::string &name, Value value) {
+    std::lock_guard<std::mutex> lock(globalLock());
     Environment *e = this;
     while (e) {
       if (e->values.count(name))
@@ -48,6 +51,7 @@ public:
   }
 
   void defineMutex(const std::string &name, Value value) {
+    std::lock_guard<std::mutex> lock(globalLock());
     Environment *e = this;
     while (e) {
       if (e->values.count(name))
@@ -60,47 +64,25 @@ public:
   }
 
   Value get(const std::string &name) {
-    auto mtx = getMutex(name);
-    if (mtx) {
-      std::lock_guard<std::mutex> lock(*mtx);
-      Environment *e = this;
-      while (e) {
-        auto it = e->values.find(name);
-        if (it != e->values.end())
-          return it->second;
-        e = e->parent.get();
-      }
-      throw std::runtime_error("Undefined variable '" + name + "'.");
+    std::lock_guard<std::mutex> lock(globalLock());
+    Environment *e = this;
+    while (e) {
+      auto it = e->values.find(name);
+      if (it != e->values.end())
+        return it->second;
+      e = e->parent.get();
     }
-    auto it = values.find(name);
-    if (it != values.end())
-      return it->second;
-    if (parent)
-      return parent->get(name);
     throw std::runtime_error("Undefined variable '" + name + "'.");
   }
 
   void assign(const std::string &name, Value value) {
+    std::lock_guard<std::mutex> lock(globalLock());
+
     Environment *e = this;
     while (e) {
       if (e->consts.count(name))
         throw std::runtime_error("Cannot assign to const '" + name + "'.");
       e = e->parent.get();
-    }
-
-    auto mtx = getMutex(name);
-    if (mtx) {
-      std::lock_guard<std::mutex> lock(*mtx);
-      e = this;
-      while (e) {
-        if (e->globals.count(name)) {
-          e->values[name] = std::move(value);
-          return;
-        }
-        e = e->parent.get();
-      }
-      throw std::runtime_error("Cannot assign to undefined variable '" + name +
-                               "'.");
     }
 
     e = this;
@@ -131,6 +113,7 @@ public:
   }
 
   void free(const std::string &name) {
+    std::lock_guard<std::mutex> lock(globalLock());
     Environment *e = this;
     while (e) {
       if (e->values.count(name)) {
@@ -146,10 +129,12 @@ public:
   }
 
   bool hasLocal(const std::string &name) const {
+    std::lock_guard<std::mutex> lock(globalLock());
     return values.count(name) > 0;
   }
 
   bool isConst(const std::string &name) const {
+    std::lock_guard<std::mutex> lock(globalLock());
     const Environment *e = this;
     while (e) {
       if (e->consts.count(name))
@@ -160,6 +145,7 @@ public:
   }
 
   std::shared_ptr<std::mutex> getMutex(const std::string &name) const {
+    std::lock_guard<std::mutex> lock(globalLock());
     const Environment *e = this;
     while (e) {
       auto it = e->mutexVars.find(name);
@@ -170,9 +156,17 @@ public:
     return nullptr;
   }
 
-  std::unordered_map<std::string, Value> exportAll() const { return values; }
+  std::unordered_map<std::string, Value> exportAll() const {
+    std::lock_guard<std::mutex> lock(globalLock());
+    return values;
+  }
 
 private:
+  static std::mutex &globalLock() {
+    static std::mutex m;
+    return m;
+  }
+
   std::unordered_map<std::string, Value> values;
   std::unordered_set<std::string> globals;
   std::unordered_set<std::string> consts;

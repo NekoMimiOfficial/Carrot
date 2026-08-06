@@ -9,7 +9,7 @@ Otherwise making the functions/classes/values is exactly the same, you create a 
 
 Steps to create your own platform dependant Values:  
 1. ensure you've setup your platform folders and added them to the `CMakeLists.txt` file  
-2. under `platform/[YOUR_PLATFORM/]` create a header file for your Value definitions and a cpp file for your registery, you **MUST** name the header file `platform_core_builtins.h` and the cpp file `platform_registery.cpp`, you may add other header files to keep your project structure clean  
+2. under `platform/[YOUR_PLATFORM/]` create a header file for your Value definitions and a cpp file for your registery, you **MUST** name the header file `platform_core_builtins.h` and the cpp file `platform_registry.cpp`, you may add other header files to keep your project structure clean  
 3. inside your header include `value.h` and start defining your functions/classes/values/etc...  
 4. inside your cpp file include the header file you made (`platform_core_builtins.h`) and `platform.h`  
 5. inside your cpp file define `void registerPlatformBuiltins(Interpreter *interp)` and within it you can call `interp->registerBuiltinFn(std::make_shared<YOUR_FN>());` to register your function, the same can be done for `registerBuiltinClass` and `registerBuiltin`, you can technically also do `interp->registerBuiltin("x", "hello, world!");` which will add a variable called `x` and set its contents to "hello, world!"  

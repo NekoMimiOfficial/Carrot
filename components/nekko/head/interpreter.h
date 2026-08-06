@@ -3,6 +3,7 @@
 #include "environment.h"
 #include "value.h"
 #include <memory>
+#include <string>
 #include <vector>
 
 struct ReturnException {
@@ -13,7 +14,7 @@ struct ReturnException {
 struct BreakException {};
 struct ContinueException {};
 
-class Interpreter {
+class Interpreter : public StmtVisitor, public ExprVisitor {
 public:
   Interpreter(std::string sourceDir = ".", std::vector<std::string> argv = {});
   void interpret(const std::vector<StmtPtr> &statements);
@@ -22,27 +23,70 @@ public:
                     std::shared_ptr<Environment> blockEnv);
 
   void executeOne(Stmt *stmt) { execute(stmt); }
+  void execute(Stmt *stmt) { stmt->accept(*this); }
+  Value evaluate(Expr *expr) { return expr->accept(*this); }
 
   std::shared_ptr<Environment> globals;
 
-  void registerBuiltin(std::string name, Value val)
-  { globals->define(name, val); }
+  void registerBuiltin(std::string name, Value val) {
+    globals->define(name, val);
+  }
 
-  void registerBuiltinFn(std::shared_ptr<NinCallable> fn)
-  { globals->define(fn->name(), fn); }
+  void registerBuiltinFn(std::shared_ptr<NinCallable> fn) {
+    globals->define(fn->name(), fn);
+  }
 
-  void registerBuiltinClass(std::shared_ptr<NinClass> classInst)
-  { globals->define(classInst->className, classInst); }
+  void registerBuiltinClass(std::shared_ptr<NinClass> classInst) {
+    globals->define(classInst->className, classInst);
+  }
 
   void reset(std::string sourceDir, std::vector<std::string> argv = {});
 
-private:
-  std::shared_ptr<Environment> env;
+  std::string getSourceDir() { return sourceDir; }
 
-  void execute(Stmt *stmt);
-  Value evaluate(Expr *expr);
+private:
+  static thread_local std::shared_ptr<Environment> env;
+
+  void visit(ExprStmt &s) override;
+  void visit(PrintStmt &s) override;
+  void visit(VarDecl &s) override;
+  void visit(ConstDecl &s) override;
+  void visit(GlobalDecl &s) override;
+  void visit(MutexDecl &s) override;
+  void visit(BlockStmt &s) override;
+  void visit(IfStmt &s) override;
+  void visit(WhileStmt &s) override;
+  void visit(ForStmt &s) override;
+  void visit(FunctionStmt &s) override;
+  void visit(AsyncFunctionStmt &s) override;
+  void visit(ReturnStmt &s) override;
+  void visit(ClassStmt &s) override;
+  void visit(FreeStmt &s) override;
+  void visit(BreakStmt &s) override;
+  void visit(ContinueStmt &s) override;
+
+  Value visit(LiteralExpr &e) override;
+  Value visit(VariableExpr &e) override;
+  Value visit(AssignExpr &e) override;
+  Value visit(UnaryExpr &e) override;
+  Value visit(BinaryExpr &e) override;
+  Value visit(LogicalExpr &e) override;
+  Value visit(CallExpr &e) override;
+  Value visit(ArrayExpr &e) override;
+  Value visit(IndexExpr &e) override;
+  Value visit(IndexAssignExpr &e) override;
+  Value visit(GetExpr &e) override;
+  Value visit(SetExpr &e) override;
+  Value visit(NewExpr &e) override;
+  Value visit(ThisExpr &e) override;
+  Value visit(SuperExpr &e) override;
+  Value visit(CoroutineExpr &e) override;
+  Value visit(AwaitExpr &e) override;
 
   void checkNumberOperand(const Token &op, const Value &val);
   void checkNumberOperands(const Token &op, const Value &left,
                            const Value &right);
+  std::string sourceDir;
 };
+
+void registerHandler(Interpreter *interp);

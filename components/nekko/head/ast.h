@@ -1,5 +1,7 @@
 #pragma once
 #include "token.h"
+#include "value.h"
+#include "visitor.h"
 #include <memory>
 #include <string>
 #include <variant>
@@ -13,274 +15,32 @@ using StmtPtr = std::unique_ptr<Stmt>;
 
 struct Expr {
   virtual ~Expr() = default;
-};
-
-struct LiteralExpr : Expr {
-  std::variant<std::monostate, double, std::string, bool> value;
-
-  explicit LiteralExpr(double d) : value(d) {}
-  explicit LiteralExpr(std::string s) : value(std::move(s)) {}
-  explicit LiteralExpr(bool b) : value(b) {}
-  LiteralExpr() : value(std::monostate{}) {}
-};
-
-struct VariableExpr : Expr {
-  Token name;
-  explicit VariableExpr(Token name) : name(std::move(name)) {}
-};
-
-struct BinaryExpr : Expr {
-  ExprPtr left;
-  Token op;
-  ExprPtr right;
-
-  BinaryExpr(ExprPtr left, Token op, ExprPtr right)
-      : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
-};
-
-struct UnaryExpr : Expr {
-  Token op;
-  ExprPtr right;
-
-  UnaryExpr(Token op, ExprPtr right)
-      : op(std::move(op)), right(std::move(right)) {}
-};
-
-struct AssignExpr : Expr {
-  Token name;
-  ExprPtr value;
-
-  AssignExpr(Token name, ExprPtr value)
-      : name(std::move(name)), value(std::move(value)) {}
-};
-
-struct CallExpr : Expr {
-  ExprPtr callee;
-  Token paren;
-  std::vector<ExprPtr> arguments;
-
-  CallExpr(ExprPtr callee, Token paren, std::vector<ExprPtr> arguments)
-      : callee(std::move(callee)), paren(std::move(paren)),
-        arguments(std::move(arguments)) {}
-};
-
-struct LogicalExpr : Expr {
-  ExprPtr left;
-  Token op;
-  ExprPtr right;
-
-  LogicalExpr(ExprPtr left, Token op, ExprPtr right)
-      : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
-};
-
-struct ArrayExpr : Expr {
-  std::vector<ExprPtr> elements;
-  explicit ArrayExpr(std::vector<ExprPtr> elements)
-      : elements(std::move(elements)) {}
-};
-
-struct IndexExpr : Expr {
-  ExprPtr object;
-  ExprPtr index;
-  Token bracket;
-
-  IndexExpr(ExprPtr object, ExprPtr index, Token bracket)
-      : object(std::move(object)), index(std::move(index)),
-        bracket(std::move(bracket)) {}
-};
-
-struct IndexAssignExpr : Expr {
-  ExprPtr object;
-  ExprPtr index;
-  ExprPtr value;
-  Token bracket;
-
-  IndexAssignExpr(ExprPtr object, ExprPtr index, ExprPtr value, Token bracket)
-      : object(std::move(object)), index(std::move(index)),
-        value(std::move(value)), bracket(std::move(bracket)) {}
+  virtual Value accept(ExprVisitor &v) = 0;
 };
 
 struct Stmt {
   virtual ~Stmt() = default;
+  virtual void accept(StmtVisitor &v) = 0;
 };
 
-struct ExprStmt : Stmt {
-  ExprPtr expression;
-  explicit ExprStmt(ExprPtr expression) : expression(std::move(expression)) {}
+template <typename Derived> struct ExprAcceptor : Expr {
+  Value accept(ExprVisitor &v) override {
+    return v.visit(static_cast<Derived &>(*this));
+  }
 };
 
-struct PrintStmt : Stmt {
-  ExprPtr expression;
-  explicit PrintStmt(ExprPtr expression) : expression(std::move(expression)) {}
+template <typename Derived> struct StmtAcceptor : Stmt {
+  void accept(StmtVisitor &v) override {
+    v.visit(static_cast<Derived &>(*this));
+  }
 };
 
-struct VarDecl : Stmt {
-  Token name;
-  ExprPtr initializer;
-
-  VarDecl(Token name, ExprPtr initializer)
-      : name(std::move(name)), initializer(std::move(initializer)) {}
-};
-
-struct BlockStmt : Stmt {
-  std::vector<StmtPtr> statements;
-  explicit BlockStmt(std::vector<StmtPtr> statements)
-      : statements(std::move(statements)) {}
-};
-
-struct IfStmt : Stmt {
-  ExprPtr condition;
-  StmtPtr thenBranch;
-  StmtPtr elseBranch;
-
-  IfStmt(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
-      : condition(std::move(condition)), thenBranch(std::move(thenBranch)),
-        elseBranch(std::move(elseBranch)) {}
-};
-
-struct WhileStmt : Stmt {
-  ExprPtr condition;
-  StmtPtr body;
-
-  WhileStmt(ExprPtr condition, StmtPtr body)
-      : condition(std::move(condition)), body(std::move(body)) {}
-};
-
-struct ForStmt : Stmt {
-  StmtPtr initializer;
-  ExprPtr condition;
-  ExprPtr increment;
-  StmtPtr body;
-
-  ForStmt(StmtPtr init, ExprPtr cond, ExprPtr inc, StmtPtr body)
-      : initializer(std::move(init)), condition(std::move(cond)),
-        increment(std::move(inc)), body(std::move(body)) {}
-};
-
-struct FunctionStmt : Stmt {
-  Token name;
-  std::vector<Token> params;
-  std::vector<StmtPtr> body;
-
-  FunctionStmt(Token name, std::vector<Token> params, std::vector<StmtPtr> body)
-      : name(std::move(name)), params(std::move(params)),
-        body(std::move(body)) {}
-};
-
-struct ReturnStmt : Stmt {
-  Token keyword;
-  ExprPtr value;
-
-  ReturnStmt(Token keyword, ExprPtr value)
-      : keyword(std::move(keyword)), value(std::move(value)) {}
-};
-
-struct GetExpr : Expr {
-  ExprPtr object;
-  Token name;
-
-  GetExpr(ExprPtr object, Token name)
-      : object(std::move(object)), name(std::move(name)) {}
-};
-
-struct SetExpr : Expr {
-  ExprPtr object;
-  Token name;
-  ExprPtr value;
-
-  SetExpr(ExprPtr object, Token name, ExprPtr value)
-      : object(std::move(object)), name(std::move(name)),
-        value(std::move(value)) {}
-};
-
-struct ClassStmt : Stmt {
-  Token name;
-  std::vector<std::unique_ptr<FunctionStmt>> methods;
-  std::vector<std::unique_ptr<FunctionStmt>> overrides;
-  std::unique_ptr<Token> superclass;
-
-  ClassStmt(Token name, std::vector<std::unique_ptr<FunctionStmt>> methods,
-            std::vector<std::unique_ptr<FunctionStmt>> overrides,
-            std::unique_ptr<Token> superclass)
-      : name(std::move(name)), methods(std::move(methods)),
-        overrides(std::move(overrides)), superclass(std::move(superclass)) {}
-};
-
-struct SuperExpr : Expr {
-  Token keyword;
-  std::vector<ExprPtr> arguments;
-
-  SuperExpr(Token keyword, std::vector<ExprPtr> arguments)
-      : keyword(std::move(keyword)), arguments(std::move(arguments)) {}
-};
-
-struct NewExpr : Expr {
-  Token keyword;
-  ExprPtr classExpr;
-  std::vector<ExprPtr> arguments;
-
-  NewExpr(Token keyword, ExprPtr classExpr, std::vector<ExprPtr> arguments)
-      : keyword(std::move(keyword)), classExpr(std::move(classExpr)),
-        arguments(std::move(arguments)) {}
-};
-
-struct ThisExpr : Expr {
-  Token keyword;
-  explicit ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
-};
+#include "exprNodes.h"
+#include "stmtNodes.h"
 
 struct AsyncFunctionStmt : FunctionStmt {
   AsyncFunctionStmt(Token name, std::vector<Token> params,
                     std::vector<StmtPtr> body)
       : FunctionStmt(std::move(name), std::move(params), std::move(body)) {}
+  void accept(StmtVisitor &v) override { v.visit(*this); }
 };
-
-struct CoroutineExpr : Expr {
-  Token keyword;
-  Token fnName;
-  std::vector<ExprPtr> arguments;
-
-  CoroutineExpr(Token keyword, Token fnName, std::vector<ExprPtr> arguments)
-      : keyword(std::move(keyword)), fnName(std::move(fnName)),
-        arguments(std::move(arguments)) {}
-};
-
-struct AwaitExpr : Expr {
-  Token keyword;
-  ExprPtr value;
-
-  AwaitExpr(Token keyword, ExprPtr value)
-      : keyword(std::move(keyword)), value(std::move(value)) {}
-};
-
-struct GlobalDecl : Stmt {
-  Token name;
-  ExprPtr initializer;
-
-  GlobalDecl(Token name, ExprPtr initializer)
-      : name(std::move(name)), initializer(std::move(initializer)) {}
-};
-
-struct ConstDecl : Stmt {
-  Token name;
-  ExprPtr initializer;
-
-  ConstDecl(Token name, ExprPtr initializer)
-      : name(std::move(name)), initializer(std::move(initializer)) {}
-};
-
-struct MutexDecl : Stmt {
-  Token name;
-  ExprPtr initializer;
-
-  MutexDecl(Token name, ExprPtr initializer)
-      : name(std::move(name)), initializer(std::move(initializer)) {}
-};
-
-struct FreeStmt : Stmt {
-  Token name;
-  explicit FreeStmt(Token name) : name(std::move(name)) {}
-};
-
-struct BreakStmt : Stmt {};
-struct ContinueStmt : Stmt {};
