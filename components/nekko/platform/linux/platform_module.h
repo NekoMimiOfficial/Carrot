@@ -6,8 +6,8 @@
 #include <dlfcn.h>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <sys/types.h>
@@ -44,6 +44,12 @@ struct LoadModuleFn : NinCallable {
       path = std::filesystem::path(callerDir) / rel;
     }
 
+    std::string cacheKey =
+        std::filesystem::absolute(path).lexically_normal().string();
+    Value cached = interp->getCachedModule(cacheKey);
+    if (!std::holds_alternative<std::monostate>(cached))
+      return cached;
+
     std::ifstream file(path);
     if (!file.is_open())
       throw std::runtime_error("loadmodule(): cannot open '" + path.string() +
@@ -53,7 +59,7 @@ struct LoadModuleFn : NinCallable {
     ss << file.rdbuf();
     std::string source = ss.str();
 
-    void *handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_NODELETE); // TODO: please fix this garbo qwq
+    void *handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_NODELETE);
     if (!handle)
       throw std::runtime_error("loadmodule(): cannot open '" + path.string() +
                                "': " + dlerror());
@@ -74,6 +80,7 @@ struct LoadModuleFn : NinCallable {
     mod->sourcePath = path.string();
     mod->handle = handle;
     init(&mod->members);
+    interp->cacheModule(cacheKey, mod);
 
     return mod;
   }

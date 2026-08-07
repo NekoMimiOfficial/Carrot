@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
+#include <unordered_map>
 
 struct ReturnException {
   Value value;
@@ -43,6 +45,9 @@ public:
   void reset(std::string sourceDir, std::vector<std::string> argv = {});
 
   std::string getSourceDir() { return sourceDir; }
+
+  Value getCachedModule(const std::string &key);
+  void cacheModule(const std::string &key, Value mod);
 
 private:
   static thread_local std::shared_ptr<Environment> env;
@@ -87,6 +92,9 @@ private:
   void checkNumberOperands(const Token &op, const Value &left,
                            const Value &right);
   std::string sourceDir;
+
+  std::unordered_map<std::string, Value> moduleCache;
+  std::mutex moduleCacheMutex;
 };
 
 void registerHandler(Interpreter *interp);

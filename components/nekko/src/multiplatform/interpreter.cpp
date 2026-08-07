@@ -2,8 +2,8 @@
 #include "builtin.h"
 #include "coroutine.h"
 #include "nin_types.h"
-#include "value.h"
 #include "platform.h"
+#include "value.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -120,4 +120,17 @@ void Interpreter::checkNumberOperands(const Token &op, const Value &left,
   throw std::runtime_error("Both operands of '" + op.lexeme +
                            "' must be numbers. (line " +
                            std::to_string(op.line) + ")");
+}
+
+Value Interpreter::getCachedModule(const std::string &key) {
+  std::lock_guard<std::mutex> lock(moduleCacheMutex);
+  auto it = moduleCache.find(key);
+  if (it != moduleCache.end())
+    return it->second;
+  return std::monostate{};
+}
+
+void Interpreter::cacheModule(const std::string &key, Value mod) {
+  std::lock_guard<std::mutex> lock(moduleCacheMutex);
+  moduleCache[key] = std::move(mod);
 }

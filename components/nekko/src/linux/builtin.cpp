@@ -33,6 +33,12 @@ Value ImportFn::call(std::vector<Value> args) {
     path = std::filesystem::path(callerDir) / rel;
   }
 
+  std::string cacheKey =
+      std::filesystem::absolute(path).lexically_normal().string();
+  Value cached = interp->getCachedModule(cacheKey);
+  if (!std::holds_alternative<std::monostate>(cached))
+    return cached;
+
   std::ifstream file(path);
   if (!file.is_open())
     throw std::runtime_error("import(): cannot open '" + path.string() + "'.");
@@ -55,6 +61,7 @@ Value ImportFn::call(std::vector<Value> args) {
   auto modEnv = std::make_shared<Environment>(interp->globals);
   interp->executeBlock(keptStmts, modEnv);
   mod->members = modEnv->exportAll();
+  interp->cacheModule(cacheKey, mod);
 
   return mod;
 }
