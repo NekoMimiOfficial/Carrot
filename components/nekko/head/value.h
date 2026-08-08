@@ -71,7 +71,7 @@ struct NinInstance {
 };
 
 struct NinCoroutine {
-  enum class State { CREATED, RUNNING, DONE };
+  enum class State { CREATED, RUNNING, DONE, PAUSED };
 
   std::atomic<State> state{State::CREATED};
   Value returnValue;

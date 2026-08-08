@@ -1,7 +1,7 @@
 #include "interpreter.h"
 #include "lexer.h"
-#include "parser.h"
 #include "meta.h"
+#include "parser.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -12,11 +12,10 @@
 #include <string>
 #include <vector>
 
-static std::vector<StmtPtr> replAst;
-static Interpreter interpreter(".");
 static bool hadError = false;
 
-void runSource(const std::string &source, bool isRepl = false) {
+void runSource(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
+               const std::string &source, bool isRepl = false) {
   hadError = false;
 
   try {
@@ -44,7 +43,8 @@ void runSource(const std::string &source, bool isRepl = false) {
   }
 }
 
-void runFile(const std::string &path, std::vector<std::string> args) {
+void runFile(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
+             const std::string &path, std::vector<std::string> args) {
   std::ifstream file(path);
   if (!file.is_open()) {
     std::cerr << "Could not open file: " << path << "\n";
@@ -58,18 +58,21 @@ void runFile(const std::string &path, std::vector<std::string> args) {
 
   std::ostringstream ss;
   ss << file.rdbuf();
-  runSource(ss.str());
+  runSource(interpreter, replAst, ss.str());
 
   if (hadError)
     std::exit(1);
 }
 
-void runREPL(std::vector<std::string> args) {
+void runREPL(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
+             std::vector<std::string> args) {
   interpreter.reset(".", args);
 
-  std::cout << "Carrot " << c_assemble_appver.maj << "." << c_assemble_appver.min << "." << c_assemble_appver.fix
-            << " [" << c_assemble_appver.codename << "] (main, " << c_assemble_appver.date
-            << ") [GCC " << c_assemble_appver.gccver << "] on linux\n";
+  std::cout << "Carrot " << c_assemble_appver.maj << "."
+            << c_assemble_appver.min << "." << c_assemble_appver.fix << " ["
+            << c_assemble_appver.codename << "] (main, "
+            << c_assemble_appver.date << ") [GCC " << c_assemble_appver.gccver
+            << "] on linux\n";
   std::cout << "type \"exit\" or hit CTRL-d to exit the REPL.\n\n";
 
   char *rawInput = nullptr;
@@ -83,7 +86,7 @@ void runREPL(std::vector<std::string> args) {
         break;
 
       add_history(input.c_str());
-      runSource(input, true);
+      runSource(interpreter, replAst, input, true);
     }
   }
 
@@ -98,14 +101,17 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++)
     args.push_back(argv[i]);
 
+  Interpreter interpreter(".");
+  std::vector<StmtPtr> replAst;
+
   if (argc == 1) {
-    runREPL(args);
+    runREPL(interpreter, replAst, args);
   } else if (argc > 1) {
     std::string_view check = argv[1];
     if (check == "-r") {
-      runREPL(args);
+      runREPL(interpreter, replAst, args);
     } else {
-      runFile(argv[1], args);
+      runFile(interpreter, replAst, argv[1], args);
     }
   }
 

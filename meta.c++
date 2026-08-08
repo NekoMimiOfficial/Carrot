@@ -1,11 +1,11 @@
 #include "meta.h"
 
 const AppVer c_assemble_appver {
-  1,
   0,
   0,
+  2,
 
-  "Ragdoll",
+  "NekoMimi",
   "@GCC_VERSION@",
   "@COMPILE_DATE@"
 };

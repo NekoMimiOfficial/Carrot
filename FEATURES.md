@@ -22,12 +22,13 @@
 - [x] scope isolation.  
 - [x] class inheritance.  
 - [x] function overriding.  
-- [ ] scope GC.  
+- [x] scope GC.  
 - [x] sleep.  
 - [x] platform dependant builtins.  
 - [ ] continue and break.  
 - [ ] builtin class function overrides for assisted builtin custom types.  
-- [ ] improved coro: stop() pause() resume()
+- [ ] improved coro: stop() pause() resume().  
+- [ ] foreign core API for direct control of the intrpreter.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  
@@ -35,7 +36,6 @@
 - [ ] Bootstrap.  
 - [ ] JSON.  
 - [ ] XML.  
-- [ ] UI.  
 - [ ] Math.  
 - [ ] GUI.  
 - [ ] Filesystem.  

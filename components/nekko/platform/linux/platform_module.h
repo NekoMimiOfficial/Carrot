@@ -17,6 +17,21 @@
 
 using InitFn = void (*)(std::unordered_map<std::string, Value> *);
 
+struct ModuleKeepAliveFn : NinCallable {
+  std::shared_ptr<NinCallable> inner;
+  std::shared_ptr<void> keepAlive;
+
+  ModuleKeepAliveFn(std::shared_ptr<NinCallable> inner,
+                    std::shared_ptr<void> keepAlive)
+      : inner(std::move(inner)), keepAlive(std::move(keepAlive)) {}
+
+  int arity() override { return inner->arity(); }
+  std::string name() override { return inner->name(); }
+  Value call(std::vector<Value> args) override {
+    return inner->call(std::move(args));
+  }
+};
+
 struct LoadModuleFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "loadmodule"; }
@@ -59,29 +74,41 @@ struct LoadModuleFn : NinCallable {
     ss << file.rdbuf();
     std::string source = ss.str();
 
-    void *handle = dlopen(path.c_str(), RTLD_LAZY | RTLD_NODELETE);
-    if (!handle)
+    void *rawHandle = dlopen(path.c_str(), RTLD_LAZY);
+    if (!rawHandle)
       throw std::runtime_error("loadmodule(): cannot open '" + path.string() +
                                "': " + dlerror());
 
-    auto init = (InitFn)dlsym(handle, "carrot_module_init");
+    auto init = (InitFn)dlsym(rawHandle, "carrot_module_init");
     if (!init) {
-      dlclose(handle);
+      dlclose(rawHandle);
       throw std::runtime_error("loadmodule(): '" + path.string() +
                                "' has no carrot_module_init symbol.");
     }
 
-    auto mod = std::shared_ptr<NinModule>(new NinModule(), [](NinModule *m) {
-      if (m->handle)
-        dlclose(m->handle);
-      delete m;
+    auto libHandle = std::shared_ptr<void>(rawHandle, [](void *h) {
+      if (h)
+        dlclose(h);
     });
 
+    auto mod = std::make_shared<NinModule>();
     mod->sourcePath = path.string();
-    mod->handle = handle;
-    init(&mod->members);
-    interp->cacheModule(cacheKey, mod);
+    mod->handle = rawHandle;
 
+    std::unordered_map<std::string, Value> rawMembers;
+    init(&rawMembers);
+
+    for (auto &[memberName, val] : rawMembers) {
+      if (std::holds_alternative<std::shared_ptr<NinCallable>>(val)) {
+        auto orig = std::get<std::shared_ptr<NinCallable>>(val);
+        mod->members[memberName] =
+            std::make_shared<ModuleKeepAliveFn>(orig, libHandle);
+      } else {
+        mod->members[memberName] = val;
+      }
+    }
+
+    interp->cacheModule(cacheKey, mod);
     return mod;
   }
 };
