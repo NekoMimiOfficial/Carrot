@@ -1,5 +1,6 @@
 #pragma once
 #include "token.h"
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -35,5 +36,6 @@ private:
 
   void addToken(TokenType type);
   void addToken(TokenType type, double number);
+  void addToken(TokenType type, uint8_t byte);
   void addToken(TokenType type, std::string str);
 };

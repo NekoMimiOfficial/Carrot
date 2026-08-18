@@ -1,9 +1,14 @@
 #pragma once
+#include "ast.h"
+#include <cstdint>
+#include <string>
+#include <variant>
 
 struct LiteralExpr : ExprAcceptor<LiteralExpr> {
-  std::variant<std::monostate, double, std::string, bool> value;
+  std::variant<std::monostate, double, std::string, bool, uint8_t> value;
 
   explicit LiteralExpr(double d) : value(d) {}
+  explicit LiteralExpr(uint8_t x) : value(x) {}
   explicit LiteralExpr(std::string s) : value(std::move(s)) {}
   explicit LiteralExpr(bool b) : value(b) {}
   LiteralExpr() : value(std::monostate{}) {}

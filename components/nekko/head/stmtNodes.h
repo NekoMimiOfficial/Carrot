@@ -1,4 +1,5 @@
 #pragma once
+#include "ast.h"
 
 struct ExprStmt : StmtAcceptor<ExprStmt> {
   ExprPtr expression;

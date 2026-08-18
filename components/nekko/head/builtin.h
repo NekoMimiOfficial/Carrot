@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "value.h"
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -53,6 +54,8 @@ struct TypeFn : NinCallable {
       return std::string("nil");
     if (std::holds_alternative<double>(v))
       return std::string("number");
+    if (std::holds_alternative<uint8_t>(v))
+      return std::string("byte");
     if (std::holds_alternative<std::string>(v))
       return std::string("string");
     if (std::holds_alternative<bool>(v))

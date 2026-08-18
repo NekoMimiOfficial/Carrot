@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <variant>
 
@@ -6,6 +7,7 @@ enum class TokenType {
 
   NUMBER,
   STRING,
+  BYTE,
   TRUE_LIT,
   FALSE_LIT,
   NIL,
@@ -71,13 +73,16 @@ struct Token {
   TokenType type;
   std::string lexeme;
   int line;
-  std::variant<std::monostate, double, std::string> literal;
+  std::variant<std::monostate, double, bool, std::string, uint8_t> literal;
 
   Token(TokenType type, std::string lexeme, int line)
       : type(type), lexeme(std::move(lexeme)), line(line) {}
 
   Token(TokenType type, std::string lexeme, int line, double num)
       : type(type), lexeme(std::move(lexeme)), line(line), literal(num) {}
+
+  Token(TokenType type, std::string lexeme, int line, uint8_t byte)
+      : type(type), lexeme(std::move(lexeme)), line(line), literal(byte) {}
 
   Token(TokenType type, std::string lexeme, int line, std::string str)
       : type(type), lexeme(std::move(lexeme)), line(line),

@@ -3,6 +3,7 @@
 #include "nin_types.h"
 #include "value.h"
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
 
 extern thread_local bool insideCoroutine;
@@ -14,6 +15,8 @@ Value Interpreter::visit(LiteralExpr &e) {
     return std::get<std::string>(e.value);
   if (std::holds_alternative<bool>(e.value))
     return std::get<bool>(e.value);
+  if (std::holds_alternative<uint8_t>(e.value))
+    return std::get<uint8_t>(e.value);
   return std::monostate{};
 }
 

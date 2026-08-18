@@ -29,6 +29,7 @@
 - [ ] builtin class function overrides for assisted builtin custom types.  
 - [ ] improved coro: stop() pause() resume().  
 - [ ] foreign core API for direct control of the intrpreter.  
+- [x] bytes as a builtin type.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  

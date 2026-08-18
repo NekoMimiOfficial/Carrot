@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <cstdint>
 
 Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
@@ -428,6 +429,11 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::NUMBER})) {
     double val = std::get<double>(previous().literal);
+    return std::make_unique<LiteralExpr>(val);
+  }
+
+  if (match({TokenType::BYTE})) {
+    uint8_t val = std::get<uint8_t>(previous().literal);
     return std::make_unique<LiteralExpr>(val);
   }
 

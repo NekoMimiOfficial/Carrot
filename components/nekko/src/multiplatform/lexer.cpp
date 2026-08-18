@@ -1,5 +1,10 @@
 #include "lexer.h"
+#include "value.h"
+#include <algorithm>
+#include <cstdint>
 #include <stdexcept>
+#include <variant>
+#include <vector>
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"let", TokenType::LET},
@@ -218,19 +223,60 @@ void Lexer::scanString() {
   addToken(TokenType::STRING, value);
 }
 
+bool isHexChar(char target) {
+  std::vector<char> hexChars = {'a', 'b', 'c', 'd', 'e', 'f',
+                                'A', 'B', 'C', 'D', 'E', 'F'};
+  auto it = std::find(hexChars.begin(), hexChars.end(), target);
+
+  return (it != hexChars.end());
+}
+
 void Lexer::scanNumber() {
+  bool isHex = false;
+
   while (isDigit(peek()))
     advance();
 
-  if (peek() == '.' && isDigit(peekNext())) {
+  if (!isHex && (current - start == 1) && source[start] == '0' &&
+      peek() == 'x') {
+    isHex = true;
+    advance();
+
+    if (!isDigit(peek()) && !isHexChar(peek())) {
+      throw std::runtime_error(
+          "Invalid hex literal, expected hex digits after '0x' at line: " +
+          std::to_string(line));
+    }
+
+    while (isDigit(peek()) || isHexChar(peek())) {
+      if ((current - start) > 3)
+        throw std::runtime_error(
+            "Incorrent byte size, bytes are 2 characters long, got: " +
+            std::to_string(current - start - 1) +
+            " at line: " + std::to_string(line));
+      advance();
+    }
+  } else if (peek() == '.' && isDigit(peekNext())) {
     advance();
     while (isDigit(peek()))
       advance();
   }
 
+  if (isAlpha(peek())) {
+    throw std::runtime_error(
+        "Invalid character '" + std::string(1, peek()) +
+        "' trailing number literal at line: " + std::to_string(line));
+  }
+
   std::string numStr = source.substr(start, current - start);
-  double value = std::stod(numStr);
-  addToken(TokenType::NUMBER, value);
+
+  if (isHex) {
+    uint8_t value = static_cast<uint8_t>(std::stoul(numStr, nullptr, 16));
+    addToken(TokenType::BYTE, value);
+  } else {
+    double value = std::stod(numStr);
+    addToken(TokenType::NUMBER, value);
+  }
 }
 
 void Lexer::scanIdentifier() {
@@ -284,6 +330,11 @@ void Lexer::addToken(TokenType type) {
 void Lexer::addToken(TokenType type, double number) {
   std::string text = source.substr(start, current - start);
   tokens.emplace_back(type, text, line, number);
+}
+
+void Lexer::addToken(TokenType type, uint8_t byte) {
+  std::string text = source.substr(start, current - start);
+  tokens.emplace_back(type, text, line, byte);
 }
 
 void Lexer::addToken(TokenType type, std::string str) {
