@@ -21,7 +21,6 @@ enum class TokenType {
   ELSE,
   WHILE,
   FOR,
-  PRINT,
   AND,
   OR,
 

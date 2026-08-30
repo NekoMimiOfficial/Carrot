@@ -1,15 +1,9 @@
 #include "interpreter.h"
 #include "nin_types.h"
 #include "value.h"
-#include <iostream>
 #include <stdexcept>
 
 void Interpreter::visit(ExprStmt &s) { evaluate(s.expression.get()); }
-
-void Interpreter::visit(PrintStmt &s) {
-  Value val = evaluate(s.expression.get());
-  std::cout << valueToString(val) << "\n";
-}
 
 void Interpreter::visit(VarDecl &s) {
   Value value = std::monostate{};

@@ -17,7 +17,6 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"true", TokenType::TRUE_LIT},
     {"false", TokenType::FALSE_LIT},
     {"nil", TokenType::NIL},
-    {"print", TokenType::PRINT},
     {"and", TokenType::AND},
     {"or", TokenType::OR},
     {"class", TokenType::CLASS},

@@ -2,7 +2,6 @@
 #include "value.h"
 
 struct ExprStmt;
-struct PrintStmt;
 struct VarDecl;
 struct ConstDecl;
 struct GlobalDecl;
@@ -40,7 +39,6 @@ struct AwaitExpr;
 struct StmtVisitor {
   virtual ~StmtVisitor() = default;
   virtual void visit(ExprStmt &s) = 0;
-  virtual void visit(PrintStmt &s) = 0;
   virtual void visit(VarDecl &s) = 0;
   virtual void visit(ConstDecl &s) = 0;
   virtual void visit(GlobalDecl &s) = 0;

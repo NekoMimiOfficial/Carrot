@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
 
 #include "platform_core_builtins.h"
 
@@ -118,17 +117,6 @@ struct PopFn : NinCallable {
     Value last = arr->elements.back();
     arr->elements.pop_back();
     return last;
-  }
-};
-
-struct InputFn : NinCallable {
-  int arity() override { return 1; }
-  std::string name() override { return "input"; }
-  Value call(std::vector<Value> args) override {
-    std::cout << valueToString(args[0]);
-    std::string line;
-    std::getline(std::cin, line);
-    return line;
   }
 };
 

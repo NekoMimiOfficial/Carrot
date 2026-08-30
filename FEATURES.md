@@ -3,7 +3,7 @@
 - [x] if statements.  
 - [x] while statements.  
 - [x] function declarations.  
-- [x] print.  
+- [x] arrays and necessary methods.  
 - [x] class declarations.  
 - [x] "new" instantiation.  
 - [x] imports.  
@@ -16,7 +16,7 @@
 - [x] free types.  
 - [x] exit function.  
 - [x] constants.  
-- [ ] function argument default value.  
+- [ ] function kwargs default value.  
 - [x] mutex locks.  
 - [x] global variables.  
 - [x] scope isolation.  
@@ -24,21 +24,21 @@
 - [x] function overriding.  
 - [x] scope GC.  
 - [x] sleep.  
+- [x] unix time.  
 - [x] platform dependant builtins.  
 - [ ] continue and break.  
 - [ ] builtin class function overrides for assisted builtin custom types.  
 - [ ] improved coro: stop() pause() resume().  
 - [ ] foreign core API for direct control of the intrpreter.  
 - [x] bytes as a builtin type.  
+- [ ] filesystem support.  
+- [ ] string helper.  
+- [ ] date and time.  
 
 # List of included modules and TODOs  
 - [ ] Networking.  
-- [ ] String Operations.  
-- [ ] Bootstrap.  
 - [ ] JSON.  
 - [ ] XML.  
 - [ ] Math.  
-- [ ] GUI.  
-- [ ] Filesystem.  
 - [ ] TermTools.  
 - [x] Entropy.  

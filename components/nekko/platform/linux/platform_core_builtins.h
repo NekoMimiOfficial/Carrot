@@ -13,3 +13,16 @@ struct LinuxFn : NinCallable {
     return std::monostate{};
   }
 };
+
+struct InputFn : NinCallable {
+  int arity() override { return 1; }
+  std::string name() override { return "input"; }
+  Value call(std::vector<Value> args) override {
+    std::cout << valueToString(args[0]);
+    std::string line;
+    std::getline(std::cin, line);
+    return line;
+  }
+};
+
+

@@ -128,8 +128,6 @@ StmtPtr Parser::statement() {
     return forStatement();
   if (match({TokenType::RETURN}))
     return returnStatement();
-  if (match({TokenType::PRINT}))
-    return printStatement();
   if (match({TokenType::LBRACE}))
     return block();
   if (match({TokenType::FREE}))
@@ -210,14 +208,6 @@ StmtPtr Parser::returnStatement() {
   }
   consume(TokenType::SEMICOLON, "Expected ';' after return value.");
   return std::make_unique<ReturnStmt>(std::move(keyword), std::move(value));
-}
-
-StmtPtr Parser::printStatement() {
-  consume(TokenType::LPAREN, "Expected '(' after 'print'.");
-  ExprPtr value = expression();
-  consume(TokenType::RPAREN, "Expected ')' after print argument.");
-  consume(TokenType::SEMICOLON, "Expected ';' after print statement.");
-  return std::make_unique<PrintStmt>(std::move(value));
 }
 
 StmtPtr Parser::block() {

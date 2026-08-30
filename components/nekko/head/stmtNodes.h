@@ -6,11 +6,6 @@ struct ExprStmt : StmtAcceptor<ExprStmt> {
   explicit ExprStmt(ExprPtr expression) : expression(std::move(expression)) {}
 };
 
-struct PrintStmt : StmtAcceptor<PrintStmt> {
-  ExprPtr expression;
-  explicit PrintStmt(ExprPtr expression) : expression(std::move(expression)) {}
-};
-
 struct VarDecl : StmtAcceptor<VarDecl> {
   Token name;
   ExprPtr initializer;

@@ -26,7 +26,6 @@ private:
   StmtPtr whileStatement();
   StmtPtr forStatement();
   StmtPtr returnStatement();
-  StmtPtr printStatement();
   StmtPtr breakStatement();
   StmtPtr continueStatement();
   StmtPtr block();

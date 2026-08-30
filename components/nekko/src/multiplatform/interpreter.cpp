@@ -5,8 +5,6 @@
 #include "platform.h"
 #include "value.h"
 #include <cmath>
-#include <iostream>
-#include <stdexcept>
 
 extern thread_local bool insideCoroutine;
 thread_local std::shared_ptr<Environment> Interpreter::env;
@@ -17,30 +15,14 @@ void Interpreter::reset(std::string gotSourceDir,
   env = globals;
   sourceDir = gotSourceDir;
 
-  auto reg = [&](std::shared_ptr<NinCallable> fn) {
-    globals->define(fn->name(), fn);
-  };
+  // auto reg = [&](std::shared_ptr<NinCallable> fn) {
+  //   globals->define(fn->name(), fn);
+  // };
 
   std::vector<Value> argvValues;
   for (auto &a : argvIn)
     argvValues.push_back(a);
-  auto argvArray = std::make_shared<NinArray>(std::move(argvValues));
-
-  reg(std::make_shared<ImportFn>(this, std::move(sourceDir)));
-
-  reg(std::make_shared<InputFn>());
-  reg(std::make_shared<SystemFn>());
-  reg(std::make_shared<ClockFn>());
-  reg(std::make_shared<ArgvFn>(argvArray));
-  reg(std::make_shared<ExitFn>());
-  reg(std::make_shared<SleepFn>());
-
-  reg(std::make_shared<StrFn>());
-  reg(std::make_shared<NumFn>());
-  reg(std::make_shared<TypeFn>());
-  reg(std::make_shared<LenFn>());
-  reg(std::make_shared<PushFn>());
-  reg(std::make_shared<PopFn>());
+  iargv = std::make_shared<NinArray>(std::move(argvValues));
 
   registerHandler(this);
   registerPlatformHandler(this);
@@ -52,12 +34,8 @@ Interpreter::Interpreter(std::string sourceDir,
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {
-  try {
-    for (const auto &stmt : statements) {
-      execute(stmt.get());
-    }
-  } catch (const std::runtime_error &e) {
-    std::cerr << "\n[Runtime Error] " << e.what() << "\n";
+  for (const auto &stmt : statements) { // the cli/main runner should handle try catching
+    execute(stmt.get());
   }
 }
 

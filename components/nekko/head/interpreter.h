@@ -45,6 +45,7 @@ public:
   void reset(std::string sourceDir, std::vector<std::string> argv = {});
 
   std::string getSourceDir() { return sourceDir; }
+  std::shared_ptr<NinArray> getArgV() { return iargv; }
 
   Value getCachedModule(const std::string &key);
   void cacheModule(const std::string &key, Value mod);
@@ -53,7 +54,6 @@ private:
   static thread_local std::shared_ptr<Environment> env;
 
   void visit(ExprStmt &s) override;
-  void visit(PrintStmt &s) override;
   void visit(VarDecl &s) override;
   void visit(ConstDecl &s) override;
   void visit(GlobalDecl &s) override;
@@ -92,6 +92,7 @@ private:
   void checkNumberOperands(const Token &op, const Value &left,
                            const Value &right);
   std::string sourceDir;
+  std::shared_ptr<NinArray> iargv;
 
   std::unordered_map<std::string, Value> moduleCache;
   std::mutex moduleCacheMutex;
