@@ -40,7 +40,8 @@ template <typename Derived> struct StmtAcceptor : Stmt {
 
 struct AsyncFunctionStmt : FunctionStmt {
   AsyncFunctionStmt(Token name, std::vector<Token> params,
-                    std::vector<StmtPtr> body)
-      : FunctionStmt(std::move(name), std::move(params), std::move(body)) {}
+                    std::vector<ExprPtr> defaults, std::vector<StmtPtr> body)
+      : FunctionStmt(std::move(name), std::move(params), std::move(defaults),
+                     std::move(body)) {}
   void accept(StmtVisitor &v) override { v.visit(*this); }
 };

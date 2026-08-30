@@ -76,13 +76,27 @@ StmtPtr Parser::funDeclaration() {
   consume(TokenType::LPAREN, "Expected '(' after function name.");
 
   std::vector<Token> params;
+  std::vector<ExprPtr> defaults;
+  bool seenDefault = false;
   if (!check(TokenType::RPAREN)) {
     do {
-      if (params.size() >= 255) {
-        throw std::runtime_error("Cannot have more than 255 parameters.");
+      if (params.size() >= 255)
+        throw std::runtime_error(
+            "Cannot have more than 255 parameters."); // boo-hoo :<
+
+      Token param = consume(TokenType::IDENTIFIER, "Expected parameter name.");
+      params.push_back(param);
+
+      if (match({TokenType::EQUAL})) {
+        defaults.push_back(expression());
+        seenDefault = true;
+      } else {
+        if (seenDefault)
+          throw std::runtime_error(
+              "Parameter '" + param.lexeme +
+              "' without a default cannot follow one that has a default.");
+        defaults.push_back(nullptr);
       }
-      params.push_back(
-          consume(TokenType::IDENTIFIER, "Expected parameter name."));
     } while (match({TokenType::COMMA}));
   }
   consume(TokenType::RPAREN, "Expected ')' after parameters.");
@@ -92,6 +106,7 @@ StmtPtr Parser::funDeclaration() {
       std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(block().release()));
 
   return std::make_unique<FunctionStmt>(std::move(name), std::move(params),
+                                        std::move(defaults),
                                         std::move(bodyBlock->statements));
 }
 
@@ -100,10 +115,23 @@ StmtPtr Parser::asyncFunctionDeclaration() {
   consume(TokenType::LPAREN, "Expected '(' after function name.");
 
   std::vector<Token> params;
+  std::vector<ExprPtr> defaults;
+  bool seenDefault = false;
   if (!check(TokenType::RPAREN)) {
     do {
-      params.push_back(
-          consume(TokenType::IDENTIFIER, "Expected parameter name."));
+      Token param = consume(TokenType::IDENTIFIER, "Expected parameter name.");
+      params.push_back(param);
+
+      if (match({TokenType::EQUAL})) {
+        defaults.push_back(expression());
+        seenDefault = true;
+      } else {
+        if (seenDefault)
+          throw std::runtime_error(
+              "Parameter '" + param.lexeme +
+              "' without a default cannot follow one that has a default.");
+        defaults.push_back(nullptr);
+      }
     } while (match({TokenType::COMMA}));
   }
   consume(TokenType::RPAREN, "Expected ')' after parameters.");
@@ -116,6 +144,7 @@ StmtPtr Parser::asyncFunctionDeclaration() {
   insideAsync = prev;
 
   return std::make_unique<AsyncFunctionStmt>(std::move(name), std::move(params),
+                                             std::move(defaults),
                                              std::move(bodyBlock->statements));
 }
 
@@ -381,16 +410,25 @@ ExprPtr Parser::call() {
     if (match({TokenType::LPAREN})) {
       Token paren = previous();
       std::vector<ExprPtr> args;
+      std::vector<std::pair<std::string, ExprPtr>> kwargs;
       if (!check(TokenType::RPAREN)) {
         do {
-          if (args.size() >= 255)
-            throw std::runtime_error("Cannot have more than 255 arguments.");
-          args.push_back(expression());
+          if (args.size() + kwargs.size() >= 255)
+            throw std::runtime_error(
+                "Cannot have more than 255 arguments."); // boo-hoo! :<
+
+          if (check(TokenType::IDENTIFIER) && checkNext(TokenType::EQUAL)) {
+            Token kwName = advance();
+            advance();
+            kwargs.emplace_back(kwName.lexeme, expression());
+          } else {
+            args.push_back(expression());
+          }
         } while (match({TokenType::COMMA}));
       }
       consume(TokenType::RPAREN, "Expected ')' after arguments.");
       expr = std::make_unique<CallExpr>(std::move(expr), std::move(paren),
-                                        std::move(args));
+                                        std::move(args), std::move(kwargs));
     } else if (match({TokenType::LBRACKET})) {
       Token bracket = previous();
       ExprPtr index = expression();
@@ -488,14 +526,21 @@ ExprPtr Parser::primary() {
                            "Expected function name after 'coroutine'.");
     consume(TokenType::LPAREN, "Expected '(' after function name.");
     std::vector<ExprPtr> args;
+    std::vector<std::pair<std::string, ExprPtr>> kwargs;
     if (!check(TokenType::RPAREN)) {
       do {
-        args.push_back(expression());
+        if (check(TokenType::IDENTIFIER) && checkNext(TokenType::EQUAL)) {
+          Token kwName = advance();
+          advance();
+          kwargs.emplace_back(kwName.lexeme, expression());
+        } else {
+          args.push_back(expression());
+        }
       } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RPAREN, "Expected ')'.");
     return std::make_unique<CoroutineExpr>(std::move(kw), std::move(fnName),
-                                           std::move(args));
+                                           std::move(args), std::move(kwargs));
   }
 
   if (match({TokenType::AWAIT})) {
@@ -530,6 +575,14 @@ bool Parser::check(TokenType type) {
   if (isAtEnd())
     return false;
   return peek().type == type;
+}
+
+bool Parser::checkNext(TokenType type) {
+  if (isAtEnd())
+    return false;
+  if (current + 1 >= (int)tokens.size())
+    return false;
+  return tokens[current + 1].type == type;
 }
 
 bool Parser::match(std::initializer_list<TokenType> types) {

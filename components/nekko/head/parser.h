@@ -49,6 +49,7 @@ private:
   bool check(TokenType type);
   bool insideAsync = false;
   bool match(std::initializer_list<TokenType> types);
+  bool checkNext(TokenType type);
   Token advance();
   Token peek();
   Token previous();

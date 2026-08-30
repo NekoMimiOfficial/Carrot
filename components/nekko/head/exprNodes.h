@@ -48,10 +48,12 @@ struct CallExpr : ExprAcceptor<CallExpr> {
   ExprPtr callee;
   Token paren;
   std::vector<ExprPtr> arguments;
+  std::vector<std::pair<std::string, ExprPtr>> kwargs;
 
-  CallExpr(ExprPtr callee, Token paren, std::vector<ExprPtr> arguments)
+  CallExpr(ExprPtr callee, Token paren, std::vector<ExprPtr> arguments,
+           std::vector<std::pair<std::string, ExprPtr>> kwargs)
       : callee(std::move(callee)), paren(std::move(paren)),
-        arguments(std::move(arguments)) {}
+        arguments(std::move(arguments)), kwargs(std::move(kwargs)) {}
 };
 
 struct LogicalExpr : ExprAcceptor<LogicalExpr> {
@@ -136,10 +138,12 @@ struct CoroutineExpr : ExprAcceptor<CoroutineExpr> {
   Token keyword;
   Token fnName;
   std::vector<ExprPtr> arguments;
+  std::vector<std::pair<std::string, ExprPtr>> kwargs;
 
-  CoroutineExpr(Token keyword, Token fnName, std::vector<ExprPtr> arguments)
+  CoroutineExpr(Token keyword, Token fnName, std::vector<ExprPtr> arguments,
+                std::vector<std::pair<std::string, ExprPtr>> kwargs)
       : keyword(std::move(keyword)), fnName(std::move(fnName)),
-        arguments(std::move(arguments)) {}
+        arguments(std::move(arguments)), kwargs(std::move(kwargs)) {}
 };
 
 struct AwaitExpr : ExprAcceptor<AwaitExpr> {

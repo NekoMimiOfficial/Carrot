@@ -113,25 +113,27 @@ Value Interpreter::visit(CallExpr &e) {
   Value callee = evaluate(e.callee.get());
 
   std::vector<Value> args;
-  for (const auto &arg : e.arguments) {
+  for (const auto &arg : e.arguments)
     args.push_back(evaluate(arg.get()));
-  }
 
-  if (!std::holds_alternative<std::shared_ptr<NinCallable>>(callee)) {
+  std::unordered_map<std::string, Value> kwargs;
+  for (const auto &[kwName, kwExpr] : e.kwargs)
+    kwargs[kwName] = evaluate(kwExpr.get());
+
+  if (!std::holds_alternative<std::shared_ptr<NinCallable>>(callee))
     throw std::runtime_error("Can only call functions. (line " +
                              std::to_string(e.paren.line) + ")");
-  }
 
   auto fn = std::get<std::shared_ptr<NinCallable>>(callee);
 
-  if ((int)args.size() != fn->arity()) {
+  if (!fn->isVariadic() && (int)args.size() != fn->arity()) {
     throw std::runtime_error(
         "'" + fn->name() + "' expects " + std::to_string(fn->arity()) +
         " argument(s) but got " + std::to_string(args.size()) + ". (line " +
         std::to_string(e.paren.line) + ")");
   }
 
-  return fn->call(std::move(args));
+  return fn->callWithKwargs(std::move(args), std::move(kwargs));
 }
 
 Value Interpreter::visit(ArrayExpr &e) {
@@ -311,14 +313,17 @@ Value Interpreter::visit(CoroutineExpr &e) {
   for (auto &arg : e.arguments)
     args.push_back(evaluate(arg.get()));
 
+  std::unordered_map<std::string, Value> kwargs;
+  for (const auto &[kwName, kwExpr] : e.kwargs)
+    kwargs[kwName] = evaluate(kwExpr.get());
+
   auto capturedClosure = ninFn->closure;
   auto capturedDecl = ninFn->decl;
 
   auto coro = std::make_shared<NinCoroutine>(
-      [this, capturedDecl, capturedClosure, args]() mutable -> Value {
+      [this, capturedDecl, capturedClosure, args, kwargs]() mutable -> Value {
         auto funcEnv = std::make_shared<Environment>(capturedClosure);
-        for (int i = 0; i < (int)capturedDecl->params.size(); i++)
-          funcEnv->define(capturedDecl->params[i].lexeme, args[i]);
+        bindFunctionArgs(this, capturedDecl, funcEnv, args, kwargs);
 
         try {
           executeBlock(capturedDecl->body, funcEnv);

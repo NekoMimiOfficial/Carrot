@@ -41,6 +41,16 @@ struct NinCallable {
   virtual int arity() = 0;
   virtual Value call(std::vector<Value> args) = 0;
   virtual std::string name() = 0;
+
+  virtual bool isVariadic() { return false; }
+
+  virtual Value callWithKwargs(std::vector<Value> args,
+                               std::unordered_map<std::string, Value> kwargs) {
+    if (!kwargs.empty())
+      throw std::runtime_error("'" + name() +
+                               "' does not accept keyword arguments.");
+    return call(std::move(args));
+  }
 };
 
 struct NinModule {

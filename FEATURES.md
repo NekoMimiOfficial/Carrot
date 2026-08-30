@@ -16,7 +16,7 @@
 - [x] free types.  
 - [x] exit function.  
 - [x] constants.  
-- [ ] function kwargs default value.  
+- [x] function kwargs default value.  
 - [x] mutex locks.  
 - [x] global variables.  
 - [x] scope isolation.  

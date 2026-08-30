@@ -52,11 +52,13 @@ struct ForStmt : StmtAcceptor<ForStmt> {
 struct FunctionStmt : StmtAcceptor<FunctionStmt> {
   Token name;
   std::vector<Token> params;
+  std::vector<ExprPtr> defaults;
   std::vector<StmtPtr> body;
 
-  FunctionStmt(Token name, std::vector<Token> params, std::vector<StmtPtr> body)
+  FunctionStmt(Token name, std::vector<Token> params,
+               std::vector<ExprPtr> defaults, std::vector<StmtPtr> body)
       : name(std::move(name)), params(std::move(params)),
-        body(std::move(body)) {}
+        defaults(std::move(defaults)), body(std::move(body)) {}
 };
 
 struct ReturnStmt : StmtAcceptor<ReturnStmt> {
