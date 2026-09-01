@@ -155,9 +155,16 @@ struct ArgvFn : NinCallable {
 };
 
 struct ExitFn : NinCallable {
-  int arity() override { return 1; }
+  int arity() override { return 0; }
+  bool isVariadic() override { return true; }
   std::string name() override { return "exit"; }
-  Value call(std::vector<Value> args) override;
+
+  Value call(std::vector<Value> args) override {
+    return callWithKwargs(std::move(args), {});
+  }
+
+  Value callWithKwargs(std::vector<Value> args,
+                       std::unordered_map<std::string, Value> kwargs) override;
 };
 
 struct SleepFn : NinCallable {

@@ -66,15 +66,25 @@ Value ImportFn::call(std::vector<Value> args) {
   return mod;
 }
 
-Value ExitFn::call(std::vector<Value> args) {
-  if (!(std::holds_alternative<double>(args[0]))) {
+Value ExitFn::callWithKwargs(std::vector<Value> args,
+                             std::unordered_map<std::string, Value> kwargs) {
+
+  double ecode = 0;
+  auto it = kwargs.find("exit_code");
+  if (it != kwargs.end()) {
+    if (!std::holds_alternative<double>(it->second))
+      throw std::runtime_error("exit(): 'exit_code' must be an integer.");
+    ecode = std::get<double>(it->second);
+    kwargs.erase(it);
+  }
+  if (!kwargs.empty())
+    throw std::runtime_error("exit(): unknown keyword argument '" +
+                             kwargs.begin()->first + "'.");
+
+  if (!(isInt(ecode))) {
     throw std::runtime_error("exit(): argument must be an integer");
   }
-  double get_arg = std::get<double>(args[0]);
-  if (!(isInt(get_arg))) {
-    throw std::runtime_error("exit(): argument must be an integer");
-  }
-  int ret_code = static_cast<int>(get_arg);
+  int ret_code = static_cast<int>(ecode);
   exit(ret_code);
 }
 

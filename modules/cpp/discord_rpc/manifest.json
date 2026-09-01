@@ -1,0 +1,11 @@
+{
+  "name": "discordrpc",
+  "version": "1.0.0",
+  "author": "NekoMimi Akiko",
+  "email": "nekomimi@tilde.team",
+  "supports": "1.0.0",
+  "type": "FFI::CPP",
+  "licenses": {"APACHE2": "LICENSE"},
+  "readme": "README.md",
+  "description": "Discord Rich Presence integration built on the discord-rpc C library"
+}

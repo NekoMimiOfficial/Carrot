@@ -1,0 +1,9 @@
+{
+  "createDiscordRPC": ["NinCallable", 1, ["String"], "Create a new Discord Rich Presence session for the given Discord application client ID, and start its background update loop"],
+
+  "DiscordRPC.updatePresence": ["NinCallable", 15, ["kw::state", "kw::details", "kw::startTimestamp", "kw::endTimestamp", "kw::largeImageKey", "kw::largeImageText", "kw::smallImageKey", "kw::smallImageText", "kw::partyId", "kw::partySize", "kw::partyMax", "kw::matchSecret", "kw::joinSecret", "kw::spectateSecret", "kw::instance"], "Update the Rich Presence shown on Discord."],
+  "DiscordRPC.clearPresence": ["NinCallable", 0, [], "Clear the currently shown Rich Presence"],
+  "DiscordRPC.stop": ["NinCallable", 0, [], "Stop the background update loop and shut down the Discord RPC connection"],
+  "DiscordRPC.isRunning": ["NinCallable", 0, [], "Returns true if the background update loop is still running"],
+  "DiscordRPC.isConnected": ["NinCallable", 0, [], "Returns true if currently connected to the Discord client"]
+}
