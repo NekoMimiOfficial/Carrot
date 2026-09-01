@@ -13,6 +13,8 @@ public:
 private:
   std::vector<Token> tokens;
   int current = 0;
+  int loopDepth = 0;
+  int funcDepth = 0;
 
   StmtPtr declaration();
   StmtPtr globalDeclaration();

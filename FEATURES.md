@@ -26,7 +26,7 @@
 - [x] sleep.  
 - [x] unix time.  
 - [x] platform dependant builtins.  
-- [ ] continue and break.  
+- [x] continue and break.  
 - [ ] builtin class function overrides for assisted builtin custom types.  
 - [ ] improved coro: stop() pause() resume().  
 - [ ] foreign core API for direct control of the intrpreter.  
@@ -42,3 +42,4 @@
 - [ ] Math.  
 - [ ] TermTools.  
 - [x] Entropy.  
+- [x] Discord RPC.  

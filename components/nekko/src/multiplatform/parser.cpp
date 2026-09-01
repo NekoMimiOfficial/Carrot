@@ -100,10 +100,15 @@ StmtPtr Parser::funDeclaration() {
     } while (match({TokenType::COMMA}));
   }
   consume(TokenType::RPAREN, "Expected ')' after parameters.");
-
   consume(TokenType::LBRACE, "Expected '{' before function body.");
+
+  funcDepth++;
+  int prevLoopDepth = loopDepth;
+  loopDepth = 0;
   auto bodyBlock =
       std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(block().release()));
+  loopDepth = prevLoopDepth;
+  funcDepth--;
 
   return std::make_unique<FunctionStmt>(std::move(name), std::move(params),
                                         std::move(defaults),
@@ -137,11 +142,16 @@ StmtPtr Parser::asyncFunctionDeclaration() {
   consume(TokenType::RPAREN, "Expected ')' after parameters.");
   consume(TokenType::LBRACE, "Expected '{' before function body.");
 
+  funcDepth++;
+  int prevLoopDepth = loopDepth;
+  loopDepth = 0;
   bool prev = insideAsync;
   insideAsync = true;
   auto bodyBlock =
       std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(block().release()));
   insideAsync = prev;
+  loopDepth = prevLoopDepth;
+  funcDepth--;
 
   return std::make_unique<AsyncFunctionStmt>(std::move(name), std::move(params),
                                              std::move(defaults),
@@ -163,11 +173,17 @@ StmtPtr Parser::statement() {
     return freeStatement();
 
   if (peek().lexeme == "break") {
+    if (loopDepth == 0)
+      throw std::runtime_error("'break' used outside of a loop. (line " +
+                               std::to_string(peek().line) + ")");
     advance();
     consume(TokenType::SEMICOLON, "Expected ';' after 'break'.");
     return std::make_unique<BreakStmt>();
   }
   if (peek().lexeme == "continue") {
+    if (loopDepth == 0)
+      throw std::runtime_error("'continue' used outside of a loop. (line " +
+                               std::to_string(peek().line) + ")");
     advance();
     consume(TokenType::SEMICOLON, "Expected ';' after 'continue'.");
     return std::make_unique<ContinueStmt>();
@@ -195,7 +211,9 @@ StmtPtr Parser::whileStatement() {
   consume(TokenType::LPAREN, "Expected '(' after 'while'.");
   ExprPtr condition = expression();
   consume(TokenType::RPAREN, "Expected ')' after while condition.");
+  loopDepth++;
   StmtPtr body = statement();
+  loopDepth--;
   return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
 }
 
@@ -223,7 +241,9 @@ StmtPtr Parser::forStatement() {
   }
   consume(TokenType::RPAREN, "Expected ')' after for clauses.");
 
+  loopDepth++;
   StmtPtr body = statement();
+  loopDepth--;
 
   return std::make_unique<ForStmt>(std::move(initializer), std::move(condition),
                                    std::move(increment), std::move(body));
@@ -231,6 +251,9 @@ StmtPtr Parser::forStatement() {
 
 StmtPtr Parser::returnStatement() {
   Token keyword = previous();
+  if (funcDepth == 0)
+    throw std::runtime_error("'return' used outside of a function. (line " +
+                             std::to_string(keyword.line) + ")");
   ExprPtr value = nullptr;
   if (!check(TokenType::SEMICOLON)) {
     value = expression();

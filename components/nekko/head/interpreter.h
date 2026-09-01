@@ -3,18 +3,27 @@
 #include "environment.h"
 #include "value.h"
 #include <memory>
-#include <string>
-#include <vector>
 #include <mutex>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
-struct ReturnException {
+struct ReturnException : public std::runtime_error {
   Value value;
-  explicit ReturnException(Value v) : value(std::move(v)) {}
+  explicit ReturnException(Value v)
+      : std::runtime_error("'return' used outside of a function."),
+        value(std::move(v)) {}
 };
 
-struct BreakException {};
-struct ContinueException {};
+struct BreakException : std::runtime_error {
+  BreakException() : std::runtime_error("'break' used outside of a loop.") {}
+};
+
+struct ContinueException : std::runtime_error {
+  ContinueException()
+      : std::runtime_error("'continue' used outside of a loop.") {}
+};
 
 class Interpreter : public StmtVisitor, public ExprVisitor {
 public:
