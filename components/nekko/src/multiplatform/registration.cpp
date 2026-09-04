@@ -19,4 +19,5 @@ void registerHandler(Interpreter *interp) {
   interp->registerBuiltinFn(std::make_shared<LenFn>());
   interp->registerBuiltinFn(std::make_shared<PushFn>());
   interp->registerBuiltinFn(std::make_shared<PopFn>());
+  interp->registerBuiltinFn(std::make_shared<StrSplitFn>());
 }

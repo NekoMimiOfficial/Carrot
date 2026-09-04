@@ -2,7 +2,7 @@
 
 const AppVer c_assemble_appver {
   0,
-  3,
+  4,
   0,
 
   "NekoMimi",

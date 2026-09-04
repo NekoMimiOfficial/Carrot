@@ -13,7 +13,6 @@ Ninjin is a simple language to learn with sensible expression evaluation and is 
 | `fun` | `fun helloWorld() {}` | Defines a function. |
 | `if` | `if (expr) {}` | Runs logic based on a condition. |
 | `while` | `while (expr) {}` | Keeps running logic so long as a condition is met. |
-| `print` | `print(any)` | Writes to stdout. |
 | `class` | `class Main {}` | Creates a new class. |
 | `new` | `let x = new Main();` | Creates a new child object of a class. |
 | `DOT` | `x.object` | Access an object from a module or class. |

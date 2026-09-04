@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <functional>
 #include <iomanip>
@@ -21,7 +22,7 @@ struct NinCoroutine;
 struct NinNative;
 
 using Value =
-std::variant<std::monostate, double, std::string, bool,
+std::variant<std::monostate, double, std::string, bool, uint8_t,
 std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
 std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
 std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>,
@@ -40,6 +41,16 @@ struct NinCallable {
   virtual int arity() = 0;
   virtual Value call(std::vector<Value> args) = 0;
   virtual std::string name() = 0;
+
+  virtual bool isVariadic() { return false; }
+
+  virtual Value callWithKwargs(std::vector<Value> args,
+                               std::unordered_map<std::string, Value> kwargs) {
+    if (!kwargs.empty())
+      throw std::runtime_error("'" + name() +
+      "' does not accept keyword arguments.");
+    return call(std::move(args));
+                               }
 };
 
 struct NinModule {
@@ -71,7 +82,7 @@ struct NinInstance {
 };
 
 struct NinCoroutine {
-  enum class State { CREATED, RUNNING, DONE };
+  enum class State { CREATED, RUNNING, DONE, PAUSED };
 
   std::atomic<State> state{State::CREATED};
   Value returnValue;
@@ -120,6 +131,14 @@ inline std::string valueToString(const Value &val) {
 
     std::ostringstream oss;
     oss << d;
+    return oss.str();
+  }
+
+  if (std::holds_alternative<uint8_t>(val)) {
+    uint8_t byte = std::get<uint8_t>(val);
+    std::ostringstream oss;
+    oss << "0x" << std::hex << std::setw(2) << std::setfill('0')
+    << static_cast<uint32_t>(byte);
     return oss.str();
   }
 

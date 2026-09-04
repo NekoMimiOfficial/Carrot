@@ -1,6 +1,7 @@
 #pragma once
 #include "interpreter.h"
 #include "lexer.h"
+#include "methods.h"
 #include "parser.h"
 #include "value.h"
 #include <chrono>
@@ -48,32 +49,7 @@ struct TypeFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "type"; }
   Value call(std::vector<Value> args) override {
-    const Value &v = args[0];
-    if (std::holds_alternative<std::monostate>(v))
-      return std::string("nil");
-    if (std::holds_alternative<double>(v))
-      return std::string("number");
-    if (std::holds_alternative<uint8_t>(v))
-      return std::string("byte");
-    if (std::holds_alternative<std::string>(v))
-      return std::string("string");
-    if (std::holds_alternative<bool>(v))
-      return std::string("bool");
-    if (std::holds_alternative<std::shared_ptr<NinCallable>>(v))
-      return std::string("function");
-    if (std::holds_alternative<std::shared_ptr<NinArray>>(v))
-      return std::string("array");
-    if (std::holds_alternative<std::shared_ptr<NinModule>>(v))
-      return std::string("module");
-    if (std::holds_alternative<std::shared_ptr<NinClass>>(v))
-      return std::string("class");
-    if (std::holds_alternative<std::shared_ptr<NinInstance>>(v))
-      return std::string("instance");
-    if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(v))
-      return std::string("coroutine");
-    if (std::holds_alternative<std::shared_ptr<NinNative>>(v))
-      return std::get<std::shared_ptr<NinNative>>(v)->typeName;
-    return std::string("unknown");
+    return getType(args[0]);
   }
 };
 
@@ -171,4 +147,18 @@ struct SleepFn : NinCallable {
   int arity() override { return 1; }
   std::string name() override { return "sleep"; }
   Value call(std::vector<Value> args) override;
+};
+
+struct StrSplitFn : NinCallable {
+  int arity() override { return 2; }
+  std::string name() override { return "strSplit"; }
+  Value call(std::vector<Value> args) override {
+    if (!checkArgs(args[0], "string") || !checkArgs(args[1], "string")) {
+      throw std::runtime_error("strSplit(): arguments must be strings.");
+    }
+
+    std::string base = std::get<std::string>(args[0]);
+    std::string delimiter = std::get<std::string>(args[1]);
+    return strSplit(base, delimiter);
+  }
 };

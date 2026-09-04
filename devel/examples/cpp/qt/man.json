@@ -1,0 +1,14 @@
+{
+  "createWindow": ["NinCallable", 3, ["String", "Number", "Number"], "Create a new async Qt6 window with a title, width, and height. Returns a QtWindow instance."],
+
+  "createWindow.addText": ["NinCallable", 1, ["String"], "Add a text label (QLabel). Returns the widget ID (Number)."],
+  "createWindow.addImage": ["NinCallable", 1, ["String"], "Add an image (QLabel) from a filepath. Returns the widget ID (Number)."],
+  "createWindow.addButton": ["NinCallable", 2, ["String", "Callable"], "Add a clickable button with a callback function. Returns the widget ID (Number)."],
+
+  "createWindow.setText": ["NinCallable", 2, ["Number", "String"], "Update the text of a widget (Label/Button) by its ID."],
+  "createWindow.setImage": ["NinCallable", 2, ["Number", "String"], "Update the image of a Label by its ID."],
+  "createWindow.removeWidget": ["NinCallable", 1, ["Number"], "Remove and destroy a widget by its ID."],
+
+  "createWindow.show": ["NinCallable", 0, [], "Make the window visible"],
+  "createWindow.close": ["NinCallable", 0, [], "Close the window and stop the background Qt event loop"]
+}
