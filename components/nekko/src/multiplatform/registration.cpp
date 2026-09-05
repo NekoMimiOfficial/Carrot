@@ -1,6 +1,5 @@
 #include "interpreter.h"
 #include "builtin.h"
-#include "methods.h"
 #include <memory>
 
 void registerHandler(Interpreter *interp) {

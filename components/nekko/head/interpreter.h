@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "environment.h"
 #include "value.h"
+#include "lang.h"
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -12,17 +13,17 @@
 struct ReturnException : public std::runtime_error {
   Value value;
   explicit ReturnException(Value v)
-      : std::runtime_error("'return' used outside of a function."),
+      : std::runtime_error(LOC(RET_EXCEPTION)),
         value(std::move(v)) {}
 };
 
 struct BreakException : std::runtime_error {
-  BreakException() : std::runtime_error("'break' used outside of a loop.") {}
+  BreakException() : std::runtime_error(LOC(BREAK_EXCEPTION)) {}
 };
 
 struct ContinueException : std::runtime_error {
   ContinueException()
-      : std::runtime_error("'continue' used outside of a loop.") {}
+      : std::runtime_error(LOC(CONTINUE_EXCEPTION)) {}
 };
 
 class Interpreter : public StmtVisitor, public ExprVisitor {

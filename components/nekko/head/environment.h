@@ -1,5 +1,6 @@
 #pragma once
 #include "value.h"
+#include "lang.h"
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -42,7 +43,7 @@ public:
       if (it != e->slots.end())
         return it->second.value;
     }
-    throw std::runtime_error("Undefined variable '" + name + "'.");
+    throw std::runtime_error(LOC(UDEF_VAR, name));
   }
 
   void assign(const std::string &name, Value value) {
@@ -51,7 +52,7 @@ public:
     for (Environment *e = this; e; e = e->parent.get()) {
       auto it = e->slots.find(name);
       if (it != e->slots.end() && it->second.isConst)
-        throw std::runtime_error("Cannot assign to const '" + name + "'.");
+        throw std::runtime_error(LOC(ASSIGN_TO_CONST_VAR, name));
     }
 
     for (Environment *e = this; e; e = e->parent.get()) {
@@ -75,8 +76,7 @@ public:
       }
     }
 
-    throw std::runtime_error("Cannot assign to undefined variable '" + name +
-                             "'.");
+    throw std::runtime_error(LOC(ASSIGN_TO_UDEF_VAR, name));
   }
 
   void free(const std::string &name) {
@@ -85,7 +85,7 @@ public:
       if (e->slots.erase(name))
         return;
     }
-    throw std::runtime_error("Cannot free undefined variable '" + name + "'.");
+    throw std::runtime_error(LOC(FREE_UDEF_VAR, name));
   }
 
   bool hasLocal(const std::string &name) const {
@@ -126,7 +126,7 @@ private:
   void ensureUndefinedLocked(const std::string &name) const {
     for (const Environment *e = this; e; e = e->parent.get()) {
       if (e->slots.count(name))
-        throw std::runtime_error("'" + name + "' is already defined.");
+        throw std::runtime_error(LOC(PREDEFINED_VAR, name));
     }
   }
 

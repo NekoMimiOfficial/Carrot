@@ -1,4 +1,5 @@
 #include "coroutine.h"
+#include "lang.h"
 #include <future>
 #include <thread>
 
@@ -6,7 +7,7 @@ thread_local bool insideCoroutine = false;
 
 void coroutineRun(std::shared_ptr<NinCoroutine> coro) {
   if (coro->state != NinCoroutine::State::CREATED)
-    throw std::runtime_error("coroutine is already running or finished.");
+    throw std::runtime_error(LOC(CORO_RUNNING));
 
   coro->state = NinCoroutine::State::RUNNING;
 

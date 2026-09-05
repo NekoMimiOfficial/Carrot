@@ -1,4 +1,5 @@
 #pragma once
+#include "lang.h"
 #include <atomic>
 #include <cmath>
 #include <cstdint>
@@ -47,8 +48,7 @@ struct NinCallable {
   virtual Value callWithKwargs(std::vector<Value> args,
                                std::unordered_map<std::string, Value> kwargs) {
     if (!kwargs.empty())
-      throw std::runtime_error("'" + name() +
-                               "' does not accept keyword arguments.");
+      throw std::runtime_error(LOC(FN_NOT_VARIADIC, name()));
     return call(std::move(args));
   }
 };
@@ -109,123 +109,3 @@ struct NinNative {
   std::function<Value(const std::string &field)> getField;
   std::function<void(const std::string &field, Value v)> setField;
 };
-
-// Helpers go below, stop looking where the divider is girl...
-
-inline std::string valueToString(const Value &val) {
-  if (std::holds_alternative<std::monostate>(val))
-    return "nil";
-
-  if (std::holds_alternative<double>(val)) {
-    double d = std::get<double>(val);
-    if (std::isnan(d))
-      return "nan";
-    if (std::isinf(d))
-      return d > 0 ? "inf" : "-inf";
-
-    if (d == std::floor(d) && std::abs(d) < 1e15) {
-      std::ostringstream oss;
-      oss << std::fixed << std::setprecision(0) << d;
-      return oss.str();
-    }
-
-    std::ostringstream oss;
-    oss << d;
-    return oss.str();
-  }
-
-  if (std::holds_alternative<uint8_t>(val)) {
-    uint8_t byte = std::get<uint8_t>(val);
-    std::ostringstream oss;
-    oss << "0x" << std::hex << std::setw(2) << std::setfill('0')
-        << static_cast<uint32_t>(byte);
-    return oss.str();
-  }
-
-  if (std::holds_alternative<std::string>(val))
-    return std::get<std::string>(val);
-
-  if (std::holds_alternative<bool>(val))
-    return std::get<bool>(val) ? "true" : "false";
-
-  if (std::holds_alternative<std::shared_ptr<NinCallable>>(val)) {
-    auto fn = std::get<std::shared_ptr<NinCallable>>(val);
-    return "<fun " + fn->name() + ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinArray>>(val)) {
-    auto arr = std::get<std::shared_ptr<NinArray>>(val);
-    std::string s = "[";
-    for (size_t i = 0; i < arr->elements.size(); i++) {
-      if (i > 0)
-        s += ", ";
-
-      if (std::holds_alternative<std::string>(arr->elements[i]))
-        s += "\"" + std::get<std::string>(arr->elements[i]) + "\"";
-      else
-        s += valueToString(arr->elements[i]);
-    }
-    s += "]";
-    return s;
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinModule>>(val)) {
-    auto mod = std::get<std::shared_ptr<NinModule>>(val);
-    return "<module \"" + mod->sourcePath + "\">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinClass>>(val)) {
-    return "<class " + std::get<std::shared_ptr<NinClass>>(val)->className +
-           ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinInstance>>(val)) {
-    return "<instance of " +
-           std::get<std::shared_ptr<NinInstance>>(val)->klass->className + ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(val))
-    return "<coroutine>";
-
-  if (std::holds_alternative<std::shared_ptr<NinNative>>(val))
-    return "<native " + std::get<std::shared_ptr<NinNative>>(val)->typeName +
-           ">";
-
-  return "<unknown>";
-}
-
-inline bool isTruthy(const Value &val) {
-  if (std::holds_alternative<std::monostate>(val))
-    return false;
-  if (std::holds_alternative<double>(val))
-    return (std::get<double>(val) == 0) ? false : true;
-  if (std::holds_alternative<bool>(val))
-    return std::get<bool>(val);
-  return true;
-}
-
-inline bool isEqual(const Value &a, const Value &b) {
-  if (std::holds_alternative<std::shared_ptr<NinArray>>(a) &&
-      std::holds_alternative<std::shared_ptr<NinArray>>(b)) {
-    return std::get<std::shared_ptr<NinArray>>(a).get() ==
-           std::get<std::shared_ptr<NinArray>>(b).get();
-  }
-  return a == b;
-}
-
-inline bool isInt(double d) {
-  uint64_t bits;
-  std::memcpy(&bits, &d, sizeof(bits));
-
-  int32_t exponent = ((bits >> 52) & 0x7FF) - 1023;
-
-  if (exponent >= 52) {
-    return exponent == 1024 ? false : true;
-  }
-  if (exponent < 0) {
-    return d == 0.0;
-  }
-
-  uint64_t fractional_mask = (1ULL << (52 - exponent)) - 1;
-  return (bits & fractional_mask) == 0;
-}

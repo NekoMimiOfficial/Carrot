@@ -2,6 +2,7 @@
 #include "asset_store.h"
 #include "fs.h"
 #include "value.h"
+#include "interpreter.h"
 #include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>

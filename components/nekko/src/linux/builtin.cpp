@@ -1,6 +1,7 @@
 #include "builtin.h"
 #include "asset_store.h"
 #include "fs.h"
+#include "utils/methods.h"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -66,6 +67,7 @@ Value ImportFn::call(std::vector<Value> args) {
   return mod;
 }
 
+// TODO: fix exit only looking for kwarg and not arg too
 Value ExitFn::callWithKwargs(std::vector<Value> args,
                              std::unordered_map<std::string, Value> kwargs) {
 

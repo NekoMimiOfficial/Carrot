@@ -4,6 +4,7 @@
 #include "nin_types.h"
 #include "platform.h"
 #include "value.h"
+#include "lang.h"
 #include <cmath>
 
 extern thread_local bool insideCoroutine;
@@ -85,9 +86,7 @@ makeBoundMethod(std::shared_ptr<NinInstance> inst,
 void Interpreter::checkNumberOperand(const Token &op, const Value &val) {
   if (std::holds_alternative<double>(val))
     return;
-  throw std::runtime_error("Operand of '" + op.lexeme +
-                           "' must be a number. (line " +
-                           std::to_string(op.line) + ")");
+  throw std::runtime_error(LOC(OPERAND_NOT_NUMBER, op.lexeme, std::to_string(op.line)));
 }
 
 void Interpreter::checkNumberOperands(const Token &op, const Value &left,
@@ -95,9 +94,7 @@ void Interpreter::checkNumberOperands(const Token &op, const Value &left,
   if (std::holds_alternative<double>(left) &&
       std::holds_alternative<double>(right))
     return;
-  throw std::runtime_error("Both operands of '" + op.lexeme +
-                           "' must be numbers. (line " +
-                           std::to_string(op.line) + ")");
+  throw std::runtime_error(LOC(OPERANDS_NOT_NUMBERS, op.lexeme, std::to_string(op.line)));
 }
 
 Value Interpreter::getCachedModule(const std::string &key) {

@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lang.h"
 #include <cstdint>
 
 Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
@@ -21,7 +22,7 @@ StmtPtr Parser::declaration() {
   if (match({TokenType::MUTEX_KW}))
     return mutexDeclaration();
   if (match({TokenType::ASYNC})) {
-    consume(TokenType::FUN, "Expected 'fun' after 'async'.");
+    consume(TokenType::FUN, LOC(CONSUME_FUN_AFTER_ASYNC));
     return asyncFunctionDeclaration();
   }
   if (match({TokenType::FUN}))
@@ -33,47 +34,47 @@ StmtPtr Parser::declaration() {
 
 StmtPtr Parser::globalDeclaration() {
   Token name =
-      consume(TokenType::IDENTIFIER, "Expected variable name after 'global'.");
-  consume(TokenType::EQUAL, "Expected '=' after global variable name.");
+      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_GLOBAL));
+  consume(TokenType::EQUAL, LOC(CONSUME_EQUAL_AFTER_GLOBAL));
   ExprPtr init = expression();
-  consume(TokenType::SEMICOLON, "Expected ';' after global declaration.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_GLOBAL));
   return std::make_unique<GlobalDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::varDeclaration() {
   Token name =
-      consume(TokenType::IDENTIFIER, "Expected variable name after 'let'.");
+      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_LET));
 
   ExprPtr initializer = nullptr;
   if (match({TokenType::EQUAL})) {
     initializer = expression();
   }
 
-  consume(TokenType::SEMICOLON, "Expected ';' after variable declaration.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_LET));
   return std::make_unique<VarDecl>(std::move(name), std::move(initializer));
 }
 
 StmtPtr Parser::constDeclaration() {
   Token name =
-      consume(TokenType::IDENTIFIER, "Expected variable name after 'const'.");
-  consume(TokenType::EQUAL, "Expected '=' after const variable name.");
+      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_CONST));
+  consume(TokenType::EQUAL, LOC(CONSUME_EQUAL_AFTER_CONST));
   ExprPtr init = expression();
-  consume(TokenType::SEMICOLON, "Expected ';' after const declaration.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_CONST));
   return std::make_unique<ConstDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::mutexDeclaration() {
   Token name =
-      consume(TokenType::IDENTIFIER, "Expected variable name after 'mutex'.");
-  consume(TokenType::EQUAL, "Expected '=' after mutex variable name.");
+      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_MUTEX));
+  consume(TokenType::EQUAL, LOC(CONSUME_EQUAL_AFTER_MUTEX));
   ExprPtr init = expression();
-  consume(TokenType::SEMICOLON, "Expected ';' after mutex declaration.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_MUTEX));
   return std::make_unique<MutexDecl>(std::move(name), std::move(init));
 }
 
 StmtPtr Parser::funDeclaration() {
-  Token name = consume(TokenType::IDENTIFIER, "Expected function name.");
-  consume(TokenType::LPAREN, "Expected '(' after function name.");
+  Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_FN_NAME));
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_FN_NAME));
 
   std::vector<Token> params;
   std::vector<ExprPtr> defaults;
@@ -81,10 +82,9 @@ StmtPtr Parser::funDeclaration() {
   if (!check(TokenType::RPAREN)) {
     do {
       if (params.size() >= 255)
-        throw std::runtime_error(
-            "Cannot have more than 255 parameters."); // boo-hoo :<
+        throw std::runtime_error(LOC(PARSE_TOO_MANY_PARAMS));
 
-      Token param = consume(TokenType::IDENTIFIER, "Expected parameter name.");
+      Token param = consume(TokenType::IDENTIFIER, LOC(CONSUME_PARAM_NAME));
       params.push_back(param);
 
       if (match({TokenType::EQUAL})) {
@@ -92,15 +92,13 @@ StmtPtr Parser::funDeclaration() {
         seenDefault = true;
       } else {
         if (seenDefault)
-          throw std::runtime_error(
-              "Parameter '" + param.lexeme +
-              "' without a default cannot follow one that has a default.");
+          throw std::runtime_error(LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
         defaults.push_back(nullptr);
       }
     } while (match({TokenType::COMMA}));
   }
-  consume(TokenType::RPAREN, "Expected ')' after parameters.");
-  consume(TokenType::LBRACE, "Expected '{' before function body.");
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_PARAMS));
+  consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_BEFORE_FN_BODY));
 
   funcDepth++;
   int prevLoopDepth = loopDepth;
@@ -116,15 +114,15 @@ StmtPtr Parser::funDeclaration() {
 }
 
 StmtPtr Parser::asyncFunctionDeclaration() {
-  Token name = consume(TokenType::IDENTIFIER, "Expected function name.");
-  consume(TokenType::LPAREN, "Expected '(' after function name.");
+  Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_FN_NAME));
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_FN_NAME));
 
   std::vector<Token> params;
   std::vector<ExprPtr> defaults;
   bool seenDefault = false;
   if (!check(TokenType::RPAREN)) {
     do {
-      Token param = consume(TokenType::IDENTIFIER, "Expected parameter name.");
+      Token param = consume(TokenType::IDENTIFIER, LOC(CONSUME_PARAM_NAME));
       params.push_back(param);
 
       if (match({TokenType::EQUAL})) {
@@ -132,15 +130,13 @@ StmtPtr Parser::asyncFunctionDeclaration() {
         seenDefault = true;
       } else {
         if (seenDefault)
-          throw std::runtime_error(
-              "Parameter '" + param.lexeme +
-              "' without a default cannot follow one that has a default.");
+          throw std::runtime_error(LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
         defaults.push_back(nullptr);
       }
     } while (match({TokenType::COMMA}));
   }
-  consume(TokenType::RPAREN, "Expected ')' after parameters.");
-  consume(TokenType::LBRACE, "Expected '{' before function body.");
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_PARAMS));
+  consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_BEFORE_FN_BODY));
 
   funcDepth++;
   int prevLoopDepth = loopDepth;
@@ -174,18 +170,16 @@ StmtPtr Parser::statement() {
 
   if (peek().lexeme == "break") {
     if (loopDepth == 0)
-      throw std::runtime_error("'break' used outside of a loop. (line " +
-                               std::to_string(peek().line) + ")");
+      throw std::runtime_error(LOC(PARSE_BREAK_OUTSIDE_LOOP, std::to_string(peek().line)));
     advance();
-    consume(TokenType::SEMICOLON, "Expected ';' after 'break'.");
+    consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_BREAK));
     return std::make_unique<BreakStmt>();
   }
   if (peek().lexeme == "continue") {
     if (loopDepth == 0)
-      throw std::runtime_error("'continue' used outside of a loop. (line " +
-                               std::to_string(peek().line) + ")");
+      throw std::runtime_error(LOC(PARSE_CONTINUE_OUTSIDE_LOOP, std::to_string(peek().line)));
     advance();
-    consume(TokenType::SEMICOLON, "Expected ';' after 'continue'.");
+    consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_CONTINUE));
     return std::make_unique<ContinueStmt>();
   }
 
@@ -193,9 +187,9 @@ StmtPtr Parser::statement() {
 }
 
 StmtPtr Parser::ifStatement() {
-  consume(TokenType::LPAREN, "Expected '(' after 'if'.");
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_IF));
   ExprPtr condition = expression();
-  consume(TokenType::RPAREN, "Expected ')' after if condition.");
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_IF_COND));
 
   StmtPtr thenBranch = statement();
   StmtPtr elseBranch = nullptr;
@@ -208,9 +202,9 @@ StmtPtr Parser::ifStatement() {
 }
 
 StmtPtr Parser::whileStatement() {
-  consume(TokenType::LPAREN, "Expected '(' after 'while'.");
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_WHILE));
   ExprPtr condition = expression();
-  consume(TokenType::RPAREN, "Expected ')' after while condition.");
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_WHILE_COND));
   loopDepth++;
   StmtPtr body = statement();
   loopDepth--;
@@ -218,7 +212,7 @@ StmtPtr Parser::whileStatement() {
 }
 
 StmtPtr Parser::forStatement() {
-  consume(TokenType::LPAREN, "Expected '(' after 'for'.");
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_FOR));
 
   StmtPtr initializer = nullptr;
   if (match({TokenType::SEMICOLON})) {
@@ -233,13 +227,13 @@ StmtPtr Parser::forStatement() {
   if (!check(TokenType::SEMICOLON)) {
     condition = expression();
   }
-  consume(TokenType::SEMICOLON, "Expected ';' after for-loop condition.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_FOR_COND));
 
   ExprPtr increment = nullptr;
   if (!check(TokenType::RPAREN)) {
     increment = expression();
   }
-  consume(TokenType::RPAREN, "Expected ')' after for clauses.");
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_FOR_CLAUSES));
 
   loopDepth++;
   StmtPtr body = statement();
@@ -252,13 +246,12 @@ StmtPtr Parser::forStatement() {
 StmtPtr Parser::returnStatement() {
   Token keyword = previous();
   if (funcDepth == 0)
-    throw std::runtime_error("'return' used outside of a function. (line " +
-                             std::to_string(keyword.line) + ")");
+    throw std::runtime_error(LOC(PARSE_RETURN_OUTSIDE_FUNC, std::to_string(keyword.line)));
   ExprPtr value = nullptr;
   if (!check(TokenType::SEMICOLON)) {
     value = expression();
   }
-  consume(TokenType::SEMICOLON, "Expected ';' after return value.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_RETURN));
   return std::make_unique<ReturnStmt>(std::move(keyword), std::move(value));
 }
 
@@ -267,46 +260,46 @@ StmtPtr Parser::block() {
   while (!check(TokenType::RBRACE) && !isAtEnd()) {
     statements.push_back(declaration());
   }
-  consume(TokenType::RBRACE, "Expected '}' to close block.");
+  consume(TokenType::RBRACE, LOC(CONSUME_RBRACE_CLOSE_BLOCK));
   return std::make_unique<BlockStmt>(std::move(statements));
 }
 
 StmtPtr Parser::expressionStatement() {
   ExprPtr expr = expression();
-  consume(TokenType::SEMICOLON, "Expected ';' after expression.");
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_EXPR));
   return std::make_unique<ExprStmt>(std::move(expr));
 }
 
 StmtPtr Parser::classDeclaration() {
-  Token name = consume(TokenType::IDENTIFIER, "Expected class name.");
+  Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_CLASS_NAME));
 
   std::unique_ptr<Token> superclass = nullptr;
   if (match({TokenType::COLON})) {
     Token parentName =
-        consume(TokenType::IDENTIFIER, "Expected parent class name after ':'.");
+        consume(TokenType::IDENTIFIER, LOC(CONSUME_PARENT_CLASS_NAME));
     superclass = std::make_unique<Token>(std::move(parentName));
   }
 
-  consume(TokenType::LBRACE, "Expected '{' before class body.");
+  consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_BEFORE_CLASS_BODY));
 
   std::vector<std::unique_ptr<FunctionStmt>> methods;
   std::vector<std::unique_ptr<FunctionStmt>> overrides;
 
   while (!check(TokenType::RBRACE) && !isAtEnd()) {
     if (match({TokenType::OVERRIDE})) {
-      consume(TokenType::FUN, "Expected 'fun' after 'override'.");
+      consume(TokenType::FUN, LOC(CONSUME_FUN_AFTER_OVERRIDE));
       auto fn = std::unique_ptr<FunctionStmt>(
           static_cast<FunctionStmt *>(funDeclaration().release()));
       overrides.push_back(std::move(fn));
     } else {
-      consume(TokenType::FUN, "Expected 'fun' in class body.");
+      consume(TokenType::FUN, LOC(CONSUME_FUN_IN_CLASS_BODY));
       auto fn = std::unique_ptr<FunctionStmt>(
           static_cast<FunctionStmt *>(funDeclaration().release()));
       methods.push_back(std::move(fn));
     }
   }
 
-  consume(TokenType::RBRACE, "Expected '}' after class body.");
+  consume(TokenType::RBRACE, LOC(CONSUME_RBRACE_AFTER_CLASS_BODY));
   return std::make_unique<ClassStmt>(std::move(name), std::move(methods),
                                      std::move(overrides),
                                      std::move(superclass));
@@ -314,8 +307,8 @@ StmtPtr Parser::classDeclaration() {
 
 StmtPtr Parser::freeStatement() {
   Token name =
-      consume(TokenType::IDENTIFIER, "Expected variable name after 'free'.");
-  consume(TokenType::SEMICOLON, "Expected ';' after free statement.");
+      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_FREE));
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_FREE));
   return std::make_unique<FreeStmt>(std::move(name));
 }
 
@@ -343,8 +336,7 @@ ExprPtr Parser::assignment() {
                                        std::move(value));
     }
 
-    throw std::runtime_error("Invalid assignment target at line " +
-                             std::to_string(previous().line) + ".");
+    throw std::runtime_error(LOC(PARSE_INVALID_ASSIGN_TARGET, std::to_string(previous().line)));
   }
 
   return expr;
@@ -437,8 +429,7 @@ ExprPtr Parser::call() {
       if (!check(TokenType::RPAREN)) {
         do {
           if (args.size() + kwargs.size() >= 255)
-            throw std::runtime_error(
-                "Cannot have more than 255 arguments."); // boo-hoo! :<
+            throw std::runtime_error(LOC(PARSE_TOO_MANY_ARGS));
 
           if (check(TokenType::IDENTIFIER) && checkNext(TokenType::EQUAL)) {
             Token kwName = advance();
@@ -449,18 +440,18 @@ ExprPtr Parser::call() {
           }
         } while (match({TokenType::COMMA}));
       }
-      consume(TokenType::RPAREN, "Expected ')' after arguments.");
+      consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_ARGS));
       expr = std::make_unique<CallExpr>(std::move(expr), std::move(paren),
                                         std::move(args), std::move(kwargs));
     } else if (match({TokenType::LBRACKET})) {
       Token bracket = previous();
       ExprPtr index = expression();
-      consume(TokenType::RBRACKET, "Expected ']' after index.");
+      consume(TokenType::RBRACKET, LOC(CONSUME_RBRACKET_AFTER_INDEX));
       expr = std::make_unique<IndexExpr>(std::move(expr), std::move(index),
                                          std::move(bracket));
     } else if (match({TokenType::DOT})) {
       Token propName =
-          consume(TokenType::IDENTIFIER, "Expected property name after '.'.");
+          consume(TokenType::IDENTIFIER, LOC(CONSUME_PROP_NAME_AFTER_DOT));
       expr = std::make_unique<GetExpr>(std::move(expr), std::move(propName));
     } else {
       break;
@@ -504,13 +495,13 @@ ExprPtr Parser::primary() {
         elements.push_back(expression());
       } while (match({TokenType::COMMA}));
     }
-    consume(TokenType::RBRACKET, "Expected ']' after array elements.");
+    consume(TokenType::RBRACKET, LOC(CONSUME_RBRACKET_AFTER_ARRAY));
     return std::make_unique<ArrayExpr>(std::move(elements));
   }
 
   if (match({TokenType::LPAREN})) {
     ExprPtr expr = expression();
-    consume(TokenType::RPAREN, "Expected ')' after expression.");
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_EXPR));
     return expr;
   }
 
@@ -518,23 +509,23 @@ ExprPtr Parser::primary() {
     Token kw = previous();
 
     ExprPtr classRef = std::make_unique<VariableExpr>(
-        consume(TokenType::IDENTIFIER, "Expected class name after 'new'."));
+        consume(TokenType::IDENTIFIER, LOC(CONSUME_CLASS_NAME_AFTER_NEW)));
 
     while (match({TokenType::DOT})) {
       Token propName =
-          consume(TokenType::IDENTIFIER, "Expected property name after '.'.");
+          consume(TokenType::IDENTIFIER, LOC(CONSUME_PROP_NAME_AFTER_DOT));
       classRef =
           std::make_unique<GetExpr>(std::move(classRef), std::move(propName));
     }
 
-    consume(TokenType::LPAREN, "Expected '(' after class name.");
+    consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_CLASS_NAME));
     std::vector<ExprPtr> args;
     if (!check(TokenType::RPAREN)) {
       do {
         args.push_back(expression());
       } while (match({TokenType::COMMA}));
     }
-    consume(TokenType::RPAREN, "Expected ')' after arguments.");
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_ARGS));
 
     return std::make_unique<NewExpr>(std::move(kw), std::move(classRef),
                                      std::move(args));
@@ -545,9 +536,7 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::COROUTINE_KW})) {
     Token kw = previous();
-    Token fnName = consume(TokenType::IDENTIFIER,
-                           "Expected function name after 'coroutine'.");
-    consume(TokenType::LPAREN, "Expected '(' after function name.");
+    Token fnName = consume(TokenType::IDENTIFIER, LOC(CONSUME_FN_NAME_AFTER_COROUTINE));
     std::vector<ExprPtr> args;
     std::vector<std::pair<std::string, ExprPtr>> kwargs;
     if (!check(TokenType::RPAREN)) {
@@ -561,16 +550,14 @@ ExprPtr Parser::primary() {
         }
       } while (match({TokenType::COMMA}));
     }
-    consume(TokenType::RPAREN, "Expected ')'.");
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_GENERIC));
     return std::make_unique<CoroutineExpr>(std::move(kw), std::move(fnName),
                                            std::move(args), std::move(kwargs));
   }
 
   if (match({TokenType::AWAIT})) {
     if (!insideAsync)
-      throw std::runtime_error(
-          "'await' used outside an async function. (line " +
-          std::to_string(previous().line) + ")");
+      throw std::runtime_error(LOC(PARSE_AWAIT_OUTSIDE_ASYNC, std::to_string(previous().line)));
     Token kw = previous();
     ExprPtr val = call();
     return std::make_unique<AwaitExpr>(std::move(kw), std::move(val));
@@ -578,20 +565,18 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::SUPER})) {
     Token kw = previous();
-    consume(TokenType::LPAREN, "Expected '(' after 'super'.");
+    consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_SUPER));
     std::vector<ExprPtr> args;
     if (!check(TokenType::RPAREN)) {
       do {
         args.push_back(expression());
       } while (match({TokenType::COMMA}));
     }
-    consume(TokenType::RPAREN, "Expected ')' after super arguments.");
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_SUPER_ARGS));
     return std::make_unique<SuperExpr>(std::move(kw), std::move(args));
   }
 
-  throw std::runtime_error("Expected expression at line " +
-                           std::to_string(peek().line) +
-                           ", got unexpected token '" + peek().lexeme + "'.");
+  throw std::runtime_error(LOC(PARSE_EXPECT_EXPRESSION, std::to_string(peek().line), peek().lexeme));
 }
 
 bool Parser::check(TokenType type) {

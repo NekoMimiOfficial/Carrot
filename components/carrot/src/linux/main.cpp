@@ -90,7 +90,7 @@ void runREPL(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
     }
   }
 
-  std::cout << "See you next time!\n";
+  std::cout << "Don't leave me!!! :<\n";
 }
 
 int main(int argc, char *argv[]) {

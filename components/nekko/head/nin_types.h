@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "environment.h"
 #include "interpreter.h"
+#include "lang.h"
 #include "value.h"
 
 inline void bindFunctionArgs(Interpreter *interp, FunctionStmt *decl,
@@ -9,10 +10,7 @@ inline void bindFunctionArgs(Interpreter *interp, FunctionStmt *decl,
                              std::vector<Value> &args,
                              std::unordered_map<std::string, Value> &kwargs) {
   if (args.size() > decl->params.size())
-    throw std::runtime_error("'" + decl->name.lexeme + "' expects at most " +
-                             std::to_string(decl->params.size()) +
-                             " argument(s) but got " +
-                             std::to_string(args.size()) + ".");
+    throw std::runtime_error(LOC(FN_TOO_MANY_ARGS, decl->name.lexeme, std::to_string(decl->params.size()), std::to_string(args.size())));
 
   for (size_t i = 0; i < decl->params.size(); i++) {
     const std::string &paramName = decl->params[i].lexeme;
@@ -34,15 +32,11 @@ inline void bindFunctionArgs(Interpreter *interp, FunctionStmt *decl,
       continue;
     }
 
-    throw std::runtime_error("'" + decl->name.lexeme +
-                             "' missing required argument '" + paramName +
-                             "'.");
+    throw std::runtime_error(LOC(FN_MISSING_ARG, decl->name.lexeme, paramName));
   }
 
   if (!kwargs.empty())
-    throw std::runtime_error("'" + decl->name.lexeme +
-                             "' got unexpected keyword argument '" +
-                             kwargs.begin()->first + "'.");
+    throw std::runtime_error(LOC(FN_UNEXPECTED_KWARG, decl->name.lexeme, kwargs.begin()->first));
 }
 
 struct NinFunction : NinCallable {

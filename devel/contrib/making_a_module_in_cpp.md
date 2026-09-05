@@ -6,7 +6,7 @@ As far as you'd be concerned the 3 main `Value` types you'd be using are `NinCal
 We will now talk about these types and how you can write them, these types are structs with different overrides to define data like the name, arity, callback etc  
 
 ## Value helpers  
-Before we talk about types we will introduce some helpers that make development with types way easier (available from `methods.h`):  
+Before we talk about types we will introduce some helpers that make development with types way easier (available from `methods.h` and `ctypeutils.h`):  
 - **`getType`**: tells you what specific type a `Value` is  
 - **`checkArgs`**: checks if an arg/kwarg is of a certain type, ex: `if (!checkArgs(args[0], "string")) { // throw an error }`  
 - **`isInt`**: checks if a numeric value is an interger or a double  

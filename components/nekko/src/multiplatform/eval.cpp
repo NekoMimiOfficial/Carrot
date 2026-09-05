@@ -2,6 +2,8 @@
 #include "interpreter.h"
 #include "nin_types.h"
 #include "value.h"
+#include "utils/methods.h"
+#include "lang.h"
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
@@ -69,9 +71,7 @@ Value Interpreter::visit(BinaryExpr &e) {
     if (std::holds_alternative<std::string>(left) ||
         std::holds_alternative<std::string>(right))
       return valueToString(left) + valueToString(right);
-    throw std::runtime_error(
-        "Operands of '+' must be numbers or strings. (line " +
-        std::to_string(e.op.line) + ")");
+    throw std::runtime_error(LOC(OP_PLUS_MISMATCH, std::to_string(e.op.line)));
   case TokenType::MINUS:
     checkNumberOperands(e.op, left, right);
     return std::get<double>(left) - std::get<double>(right);
@@ -81,8 +81,7 @@ Value Interpreter::visit(BinaryExpr &e) {
   case TokenType::SLASH:
     checkNumberOperands(e.op, left, right);
     if (std::get<double>(right) == 0.0)
-      throw std::runtime_error("Division by zero. (line " +
-                               std::to_string(e.op.line) + ")");
+      throw std::runtime_error(LOC(DIV_ZERO, std::to_string(e.op.line)));
     return std::get<double>(left) / std::get<double>(right);
   case TokenType::PERCENT:
     checkNumberOperands(e.op, left, right);
@@ -121,16 +120,12 @@ Value Interpreter::visit(CallExpr &e) {
     kwargs[kwName] = evaluate(kwExpr.get());
 
   if (!std::holds_alternative<std::shared_ptr<NinCallable>>(callee))
-    throw std::runtime_error("Can only call functions. (line " +
-                             std::to_string(e.paren.line) + ")");
+    throw std::runtime_error(LOC(EXPECT_FN, std::to_string(e.paren.line)));
 
   auto fn = std::get<std::shared_ptr<NinCallable>>(callee);
 
   if (!fn->isVariadic() && (int)args.size() != fn->arity()) {
-    throw std::runtime_error(
-        "'" + fn->name() + "' expects " + std::to_string(fn->arity()) +
-        " argument(s) but got " + std::to_string(args.size()) + ". (line " +
-        std::to_string(e.paren.line) + ")");
+    throw std::runtime_error(LOC(FN_NOT_ENOUGH_ARGS, fn->name(), std::to_string(fn->arity()), std::to_string(args.size()), std::to_string(e.paren.line)));
   }
 
   return fn->callWithKwargs(std::move(args), std::move(kwargs));
@@ -151,31 +146,28 @@ Value Interpreter::visit(IndexExpr &e) {
   if (std::holds_alternative<std::shared_ptr<NinArray>>(obj)) {
     auto arr = std::get<std::shared_ptr<NinArray>>(obj);
     if (!std::holds_alternative<double>(idx))
-      throw std::runtime_error("Array index must be a number.");
+      throw std::runtime_error(LOC(ARRAY_INDEX_NAN));
     int i = (int)std::get<double>(idx);
     if (i < 0)
       i = (int)arr->elements.size() + i;
     if (i < 0 || i >= (int)arr->elements.size())
-      throw std::runtime_error("Array index " + std::to_string(i) +
-                               " out of bounds.");
+      throw std::runtime_error(LOC(ARRAY_INDEX_OOB, std::to_string(i)));
     return arr->elements[i];
   }
 
   if (std::holds_alternative<std::string>(obj)) {
     const std::string &s = std::get<std::string>(obj);
     if (!std::holds_alternative<double>(idx))
-      throw std::runtime_error("String index must be a number.");
+      throw std::runtime_error(LOC(STRING_INDEX_NAN));
     int i = (int)std::get<double>(idx);
     if (i < 0)
       i = (int)s.size() + i;
     if (i < 0 || i >= (int)s.size())
-      throw std::runtime_error("String index " + std::to_string(i) +
-                               " out of bounds.");
+      throw std::runtime_error(LOC(STRING_INDEX_OOB, std::to_string(i)));
     return std::string(1, s[i]);
   }
 
-  throw std::runtime_error("Cannot index into this type. (line " +
-                           std::to_string(e.bracket.line) + ")");
+  throw std::runtime_error(LOC(TYPE_UNINDEXABLE, std::to_string(e.bracket.line)));
 }
 
 Value Interpreter::visit(IndexAssignExpr &e) {
@@ -185,23 +177,21 @@ Value Interpreter::visit(IndexAssignExpr &e) {
 
   if (auto *v = dynamic_cast<VariableExpr *>(e.object.get())) {
     if (env->isConst(v->name.lexeme))
-      throw std::runtime_error("Cannot modify const array '" + v->name.lexeme +
-                               "'.");
+      throw std::runtime_error(LOC(ASSIGN_CONST_ARRAY, v->name.lexeme));
   }
 
   if (!std::holds_alternative<std::shared_ptr<NinArray>>(obj))
-    throw std::runtime_error("Can only index-assign into arrays.");
+    throw std::runtime_error(LOC(INDEX_ASSIGN_NOT_ARRAY));
   auto arr = std::get<std::shared_ptr<NinArray>>(obj);
   if (arr->isConst)
-    throw std::runtime_error("Cannot modify a const array.");
+    throw std::runtime_error(LOC(MODIFY_CONST_ARRAY));
   if (!std::holds_alternative<double>(idx))
-    throw std::runtime_error("Array index must be a number.");
+    throw std::runtime_error(LOC(ARRAY_INDEX_NAN));
   int i = (int)std::get<double>(idx);
   if (i < 0)
     i = (int)arr->elements.size() + i;
   if (i < 0 || i >= (int)arr->elements.size())
-    throw std::runtime_error("Array index " + std::to_string(i) +
-                             " out of bounds.");
+    throw std::runtime_error(LOC(ARRAY_INDEX_OOB, std::to_string(i)));
   arr->elements[i] = val;
   return val;
 }
@@ -219,7 +209,7 @@ Value Interpreter::visit(GetExpr &e) {
     auto it = mod->members.find(e.name.lexeme);
     if (it != mod->members.end())
       return it->second;
-    throw std::runtime_error("Module has no member '" + e.name.lexeme + "'.");
+    throw std::runtime_error(LOC(MODULE_NO_MEMBER, e.name.lexeme));
   }
 
   if (std::holds_alternative<std::shared_ptr<NinInstance>>(obj)) {
@@ -230,12 +220,10 @@ Value Interpreter::visit(GetExpr &e) {
     auto mit = inst->klass->methods.find(e.name.lexeme);
     if (mit != inst->klass->methods.end())
       return makeBoundMethod(inst, mit->second);
-    throw std::runtime_error("Undefined property '" + e.name.lexeme + "'.");
+    throw std::runtime_error(LOC(UNDEF_PROPERTY, e.name.lexeme));
   }
 
-  throw std::runtime_error(
-      "Only modules and instances have properties. (line " +
-      std::to_string(e.name.line) + ")");
+  throw std::runtime_error(LOC(NOT_GETTABLE, std::to_string(e.name.line)));
 }
 
 Value Interpreter::visit(SetExpr &e) {
@@ -260,16 +248,13 @@ Value Interpreter::visit(SetExpr &e) {
     return val;
   }
 
-  throw std::runtime_error(
-      "Only modules and instances have settable properties. (line " +
-      std::to_string(e.name.line) + ")");
+  throw std::runtime_error(LOC(NOT_SETTABLE, std::to_string(e.name.line)));
 }
 
 Value Interpreter::visit(NewExpr &e) {
   Value classVal = evaluate(e.classExpr.get());
   if (!std::holds_alternative<std::shared_ptr<NinClass>>(classVal))
-    throw std::runtime_error("Expression after 'new' is not a class. (line " +
-                             std::to_string(e.keyword.line) + ")");
+    throw std::runtime_error(LOC(NEW_NOT_CLASS, std::to_string(e.keyword.line)));
 
   auto klass = std::get<std::shared_ptr<NinClass>>(classVal);
   auto inst = std::make_shared<NinInstance>(klass);
@@ -282,14 +267,10 @@ Value Interpreter::visit(NewExpr &e) {
   if (it != klass->methods.end()) {
     auto bound = makeBoundMethod(inst, it->second);
     if ((int)args.size() != bound->arity())
-      throw std::runtime_error("'" + klass->className + ".init' expects " +
-                               std::to_string(bound->arity()) +
-                               " argument(s) but got " +
-                               std::to_string(args.size()) + ".");
+      throw std::runtime_error(LOC(INIT_ARG_MISMATCH, klass->className, std::to_string(bound->arity()), std::to_string(args.size())));
     bound->call(std::move(args));
   } else if (!args.empty()) {
-    throw std::runtime_error("Class '" + klass->className +
-                             "' has no 'init' but was called with arguments.");
+    throw std::runtime_error(LOC(NO_INIT_WITH_ARGS, klass->className));
   }
 
   return inst;
@@ -300,14 +281,12 @@ Value Interpreter::visit(ThisExpr &e) { return env->get("this"); }
 Value Interpreter::visit(CoroutineExpr &e) {
   Value fnVal = env->get(e.fnName.lexeme);
   if (!std::holds_alternative<std::shared_ptr<NinCallable>>(fnVal))
-    throw std::runtime_error("coroutine: '" + e.fnName.lexeme +
-                             "' is not a function.");
+    throw std::runtime_error(LOC(CORO_NOT_FN, e.fnName.lexeme));
 
   auto fn = std::get<std::shared_ptr<NinCallable>>(fnVal);
   auto *ninFn = dynamic_cast<NinFunction *>(fn.get());
   if (!ninFn || !ninFn->isAsync)
-    throw std::runtime_error("coroutine: '" + e.fnName.lexeme +
-                             "' is not an async function.");
+    throw std::runtime_error(LOC(CORO_NOT_ASYNC, e.fnName.lexeme));
 
   std::vector<Value> args;
   for (auto &arg : e.arguments)
@@ -369,17 +348,16 @@ Value Interpreter::visit(CoroutineExpr &e) {
 Value Interpreter::visit(SuperExpr &e) {
   Value thisVal = env->get("this");
   if (!std::holds_alternative<std::shared_ptr<NinInstance>>(thisVal))
-    throw std::runtime_error("'super' used outside a class method.");
+    throw std::runtime_error(LOC(SUPER_OUTSIDE_METHOD));
 
   auto inst = std::get<std::shared_ptr<NinInstance>>(thisVal);
   auto superclass = inst->klass->superclass;
   if (!superclass)
-    throw std::runtime_error("Class '" + inst->klass->className +
-                             "' has no parent class.");
+    throw std::runtime_error(LOC(NO_PARENT_CLASS, inst->klass->className));
 
   auto it = superclass->methods.find("init");
   if (it == superclass->methods.end())
-    throw std::runtime_error("Parent class has no 'init' method.");
+    throw std::runtime_error(LOC(PARENT_NO_INIT));
 
   std::vector<Value> args;
   for (auto &arg : e.arguments)
@@ -387,17 +365,13 @@ Value Interpreter::visit(SuperExpr &e) {
 
   auto bound = makeBoundMethod(inst, it->second);
   if ((int)args.size() != bound->arity())
-    throw std::runtime_error(
-        "super() expects " + std::to_string(bound->arity()) +
-        " argument(s) but got " + std::to_string(args.size()) + ".");
+    throw std::runtime_error(LOC(SUPER_ARG_MISMATCH, std::to_string(bound->arity()), std::to_string(args.size())));
   bound->call(std::move(args));
   return std::monostate{};
 }
 
 Value Interpreter::visit(AwaitExpr &e) {
   if (!insideCoroutine)
-    throw std::runtime_error(
-        "'await' used outside a running coroutine. (line " +
-        std::to_string(e.keyword.line) + ")");
+    throw std::runtime_error(LOC(AWAIT_OUTSIDE_CORO, std::to_string(e.keyword.line)));
   return evaluate(e.value.get());
 }

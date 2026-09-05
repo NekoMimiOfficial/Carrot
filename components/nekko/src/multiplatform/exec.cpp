@@ -1,6 +1,8 @@
 #include "interpreter.h"
 #include "nin_types.h"
 #include "value.h"
+#include "lang.h"
+#include "utils/methods.h"
 #include <stdexcept>
 
 void Interpreter::visit(ExprStmt &s) { evaluate(s.expression.get()); }
@@ -142,8 +144,7 @@ void Interpreter::visit(ClassStmt &s) {
   if (s.superclass) {
     Value superVal = env->get(s.superclass->lexeme);
     if (!std::holds_alternative<std::shared_ptr<NinClass>>(superVal))
-      throw std::runtime_error("'" + s.superclass->lexeme +
-                               "' is not a class.");
+      throw std::runtime_error(LOC(SUPERCLASS_NOT_CLASS, s.superclass->lexeme));
     superclass = std::get<std::shared_ptr<NinClass>>(superVal);
   }
 
@@ -161,17 +162,14 @@ void Interpreter::visit(ClassStmt &s) {
   for (auto &method : s.methods) {
     if (superclass && superclass->methods.count(method->name.lexeme) &&
         method->name.lexeme != "init")
-      throw std::runtime_error(
-          "Method '" + method->name.lexeme +
-          "' exists in parent class. Use 'override' to replace it.");
+      throw std::runtime_error(LOC(METHOD_NEEDS_OVERRIDE, method->name.lexeme));
     klass->methods[method->name.lexeme] =
         std::make_shared<NinFunction>(method.get(), env, this);
   }
 
   for (auto &method : s.overrides) {
     if (!superclass || !superclass->methods.count(method->name.lexeme))
-      throw std::runtime_error("Cannot override '" + method->name.lexeme +
-                               "': not defined in parent class.");
+      throw std::runtime_error(LOC(OVERRIDE_NOT_IN_PARENT, method->name.lexeme));
     klass->methods[method->name.lexeme] =
         std::make_shared<NinFunction>(method.get(), env, this);
   }
