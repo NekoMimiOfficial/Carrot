@@ -2,6 +2,7 @@
 #include "lexer.h"
 #include "meta.h"
 #include "parser.h"
+#include "lang.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -96,6 +97,8 @@ void runREPL(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
 int main(int argc, char *argv[]) {
   system("mkdir -p ~/.local/lib/carrot/modules");
   system("mkdir -p ~/.local/lib/carrot/CAPI");
+
+  initLocale();
 
   std::vector<std::string> args;
   for (int i = 0; i < argc; i++)

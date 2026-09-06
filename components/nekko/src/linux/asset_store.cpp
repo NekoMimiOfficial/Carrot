@@ -13,6 +13,12 @@ std::variant<std::string, bool> getAsset(const std::string &rel_path) {
     search_paths.push_back(fs::path(home) / ".local" / "lib" / "carrot");
   }
 
+  const char *appdir_env = std::getenv("APPDIR");
+  if (appdir_env != nullptr) {
+    fs::path appimgPath = fs::path(appdir_env) / "usr/lib/carrot/";
+    search_paths.push_back(appimgPath);
+  }
+
   search_paths.push_back(fs::path("/usr/lib/carrot"));
 
   for (const auto &base_dir : search_paths) {

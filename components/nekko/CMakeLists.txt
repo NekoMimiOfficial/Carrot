@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 option(BUILD_DBGSYM "Enables dbgsym." ON)
 option(BUILD_SHARED "Builds a shared library." ON)
 option(BUILD_LINUX "Build for Linux." ON)
-set(CARROT_LOC "default" CACHE STRING "Locale to build carrot for.")
 
 if(BUILD_DBGSYM)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
@@ -57,7 +56,6 @@ if (BUILD_SHARED)
     ${PLATFORM_SRC}
     ${PLATFORM_CORE}
     ${RUNTIME_SRC}
-    ${LOCALE_SRC}
     "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
   )
 else()
@@ -66,7 +64,6 @@ else()
     ${PLATFORM_SRC}
     ${PLATFORM_CORE}
     ${RUNTIME_SRC}
-    ${LOCALE_SRC}
     "${CMAKE_CURRENT_BINARY_DIR}/meta.cpp"
   )
 endif()

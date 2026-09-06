@@ -49,7 +49,7 @@ struct LoadModuleFn : NinCallable {
     std::filesystem::path path;
     std::string rel = std::get<std::string>(args[0]);
     if (!rel.empty() and rel.front() == '@') {
-      auto pget = getAsset("CAPI/" + rel.substr(1));
+      auto pget = getAsset("CAPI/" + ("libcarrot_" + rel.substr(1) + ".so"));
       if (std::holds_alternative<std::string>(pget)) {
         path = std::get<std::string>(pget);
       } else {

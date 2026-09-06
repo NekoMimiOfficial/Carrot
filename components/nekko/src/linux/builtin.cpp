@@ -23,7 +23,7 @@ Value ImportFn::call(std::vector<Value> args) {
   std::filesystem::path path;
   std::string rel = std::get<std::string>(args[0]);
   if (!rel.empty() and rel.front() == '@') {
-    auto pget = getAsset("modules/" + rel.substr(1));
+    auto pget = getAsset("modules/" + (rel.substr(1) + ".nin"));
     if (std::holds_alternative<std::string>(pget)) {
       path = std::get<std::string>(pget);
     } else {
