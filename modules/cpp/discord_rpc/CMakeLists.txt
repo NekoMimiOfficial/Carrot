@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(carrot_discordrpc VERSION 1.0.0)
+project(carrot_discord_rpc VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.local)
@@ -10,7 +10,7 @@ enable_language(C)
 
 find_package(Threads REQUIRED)
 
-set(DISCORD_RPC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/discord_rpc")
+set(DISCORD_RPC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/discord-rpc/lib")
 
 set(_old_suffixes ${CMAKE_FIND_LIBRARY_SUFFIXES})
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")

@@ -1,6 +1,6 @@
 #include "carrot_module.h"
 extern "C" {
-#include "libs/discord_rpc/discord_rpc.h"
+#include "discord-rpc/include/discord_rpc.h"
 }
 
 #include <atomic>
@@ -82,7 +82,7 @@ struct UpdatePresenceFn : NinCallable {
     memset(&presence, 0, sizeof(presence));
 
     std::string state, details, largeImageKey, largeImageText, smallImageKey,
-        smallImageText, partyId, matchSecret, joinSecret, spectateSecret;
+        smallImageText, partyId, matchSecret, joinSecret, spectateSecret, button1_label, button2_label, button1_url, button2_url;
 
     auto str = [&](const char *key, std::string &store) -> const char * {
       auto it = kwargs.find(key);
@@ -104,6 +104,11 @@ struct UpdatePresenceFn : NinCallable {
     presence.matchSecret = str("matchSecret", matchSecret);
     presence.joinSecret = str("joinSecret", joinSecret);
     presence.spectateSecret = str("spectateSecret", spectateSecret);
+
+    presence.button1_label = str("button1_label", button1_label);
+    presence.button2_label = str("button2_label", button2_label);
+    presence.button1_url = str("button1_url", button1_url);
+    presence.button2_url = str("button2_url", button2_url);
 
     auto num = [&](const char *key) -> long long {
       auto it = kwargs.find(key);
