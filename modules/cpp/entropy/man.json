@@ -1,19 +1,19 @@
 {
-  "sha256": ["NinCallable", 1, ["String"], "Convert string into sha256"],
-  "sha256Bytes": ["NinCallable", 1, ["String"], "..."],
-  "createSha256": ["NinCallable", 0, [], "..."],
+  "sha256": ["NinCallable", 1, ["String"], "Convert string into sha256 hash"],
+  "sha256Bytes": ["NinCallable", 1, ["String"], "Convert string into a sha256 bytestream"],
+  "createSha256": ["NinCallable", 0, [], "Create a new Sha256 state"],
 
-  "randomBytes": ["NinCallable", 0, [], "..."],
-  "randomU32": ["NinCallable", 0, [], "..."],
-  "randomU64": ["NinCallable", 0, [], "..."],
-  "randomString": ["NinCallable", 0, [], "..."],
-  "random": ["NinCallable", 0, [], "..."],
-  "randrange": ["NinCallable", 0, [], "..."],
+  "randomBytes": ["NinCallable", 1, ["Number"], "Gives variable random bytes from the entropy pool"],
+  "randomU32": ["NinCallable", 0, [], "Gives random bytes base32'd from the entropy pool"],
+  "randomU64": ["NinCallable", 0, [], "Gives random bytes base64'd from the entropy pool"],
+  "randomString": ["NinCallable", 1, ["Number"], "Gives variable random strings from the entropy pool"],
+  "random": ["NinCallable", 0, [], "Gives a random bytestream from the entropy pool"],
+  "randrange": ["NinCallable", 1, ["Number"], "Gives a random number from 0 to the given argument."],
 
-  "gatherHardwareEntropy": ["NinCallable", 0, [], "..."],
-  "hasRdrand": ["NinCallable", 0, [], "..."],
-  "hasRdseed": ["NinCallable", 0, [], "..."],
+  "gatherHardwareEntropy": ["NinCallable", 0, [], "Gives a truly random bytestream from available hardware inputs."],
+  "hasRdrand": ["NinCallable", 0, [], "Checks for hardware randomness"],
+  "hasRdseed": ["NinCallable", 0, [], "Checks for hardware randomness"],
 
-  "createDrbg": ["NinCallable", 0, [], "..."],
-  "createEntropyPool": ["NinCallable", 0, [], "..."]
+  "createDrbg": ["NinCallable", 0, [], "Initializes a new DRBG Pool state"],
+  "createEntropyPool": ["NinCallable", 0, [], "Initializes a new Entropy Pool state"]
 }

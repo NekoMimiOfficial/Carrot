@@ -1,167 +1,133 @@
 #pragma once
 #include <atomic>
+#include <chrono>
 #include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <memory>
+#include <mutex>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
 
-struct NinCallable;
-struct NinArray;
-struct NinModule;
-struct NinClass;
-struct NinInstance;
-struct NinCoroutine;
-struct NinNative;
-
-using Value =
-std::variant<std::monostate, double, std::string, bool,
-std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>,
-std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>,
-std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>,
-std::shared_ptr<NinNative>>;
-
-struct NinArray {
-  std::vector<Value> elements;
-
-  NinArray() = default;
-  explicit NinArray(std::vector<Value> elems) : elements(std::move(elems)) {}
-};
-
-struct NinCallable {
-  virtual ~NinCallable() = default;
-  virtual int arity() = 0;
-  virtual Value call(std::vector<Value> args) = 0;
-  virtual std::string name() = 0;
-};
-
-struct NinModule {
-  std::string sourcePath;
-  std::unordered_map<std::string, Value> members;
-  void *handle = nullptr;
-
-  NinModule() = default;
-
-  NinModule(std::string path, std::unordered_map<std::string, Value> members)
-  : sourcePath(std::move(path)), members(std::move(members)) {}
-};
-
-struct NinClass {
-  std::string className;
-  std::unordered_map<std::string, std::shared_ptr<NinCallable>> methods;
-
-  explicit NinClass(std::string name) : className(std::move(name)) {}
-};
-
-struct NinInstance {
-  std::shared_ptr<NinClass> klass;
-  std::unordered_map<std::string, Value> fields;
-
-  explicit NinInstance(std::shared_ptr<NinClass> k) : klass(std::move(k)) {}
-};
-
-struct NinCoroutine {
-  enum class State { CREATED, RUNNING, DONE };
-
-  std::atomic<State> state{State::CREATED};
-  Value returnValue;
-  std::function<Value()> task;
-  std::shared_ptr<void> platformHandle;
-
-  explicit NinCoroutine(std::function<Value()> t) : task(std::move(t)) {}
-};
-
-struct NinNative {
-  std::string typeName;
-  std::shared_ptr<void> data;
-  std::function<Value(const std::string &field)> getField;
-  std::function<void(const std::string &field, Value v)> setField;
-};
-
-inline std::string valueToString(const Value &val) {
-  if (std::holds_alternative<std::monostate>(val))
-    return "nil";
-
-  if (std::holds_alternative<double>(val)) {
-    double d = std::get<double>(val);
-    if (std::isnan(d))
-      return "nan";
-    if (std::isinf(d))
-      return d > 0 ? "inf" : "-inf";
-
-    if (d == std::floor(d) && std::abs(d) < 1e15) {
-      std::ostringstream oss;
-      oss << std::fixed << std::setprecision(0) << d;
-      return oss.str();
-    }
-
-    std::ostringstream oss;
-    oss << d;
-    return oss.str();
-  }
-
-  if (std::holds_alternative<std::string>(val))
-    return std::get<std::string>(val);
-
-  if (std::holds_alternative<bool>(val))
-    return std::get<bool>(val) ? "true" : "false";
-
-  if (std::holds_alternative<std::shared_ptr<NinCallable>>(val)) {
-    auto fn = std::get<std::shared_ptr<NinCallable>>(val);
-    return "<fun " + fn->name() + ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinArray>>(val)) {
-    auto arr = std::get<std::shared_ptr<NinArray>>(val);
-    std::string s = "[";
-    for (size_t i = 0; i < arr->elements.size(); i++) {
-      if (i > 0)
-        s += ", ";
-
-      if (std::holds_alternative<std::string>(arr->elements[i]))
-        s += "\"" + std::get<std::string>(arr->elements[i]) + "\"";
-      else
-        s += valueToString(arr->elements[i]);
-    }
-    s += "]";
-    return s;
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinModule>>(val)) {
-    auto mod = std::get<std::shared_ptr<NinModule>>(val);
-    return "<module \"" + mod->sourcePath + "\">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinClass>>(val)) {
-    return "<class " + std::get<std::shared_ptr<NinClass>>(val)->className +
-    ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinInstance>>(val)) {
-    return "<instance of " +
-    std::get<std::shared_ptr<NinInstance>>(val)->klass->className + ">";
-  }
-
-  if (std::holds_alternative<std::shared_ptr<NinCoroutine>>(val))
-    return "<coroutine>";
-
-  if (std::holds_alternative<std::shared_ptr<NinNative>>(val))
-    return "<native " + std::get<std::shared_ptr<NinNative>>(val)->typeName +
-    ">";
-
-  return "<unknown>";
-}
-
-inline bool isTruthy(const Value &val) {
-  if (std::holds_alternative<std::monostate>(val))
-    return false;
-  if (std::holds_alternative<bool>(val))
-    return std::get<bool>(val);
-  return true;
-}
-
-extern "C" { void carrot_module_init(std::unordered_map<std::string, Value> *out); }
+#define LOC_ID_LIST                                                            \
+X(UDEF_VAR)                                                                  \
+X(ASSIGN_TO_CONST_VAR)                                                       \
+X(ASSIGN_TO_UDEF_VAR)                                                        \
+X(FREE_UDEF_VAR)                                                             \
+X(PREDEFINED_VAR)                                                            \
+X(RET_EXCEPTION)                                                             \
+X(BREAK_EXCEPTION)                                                           \
+X(CONTINUE_EXCEPTION)                                                        \
+X(FN_TOO_MANY_ARGS)                                                          \
+X(FN_MISSING_ARG)                                                            \
+X(FN_UNEXPECTED_KWARG)                                                       \
+X(FN_NOT_VARIADIC)                                                           \
+X(CORO_RUNNING)                                                              \
+X(OP_PLUS_MISMATCH)                                                          \
+X(DIV_ZERO)                                                                  \
+X(EXPECT_FN)                                                                 \
+X(FN_NOT_ENOUGH_ARGS)                                                        \
+X(ARRAY_INDEX_NAN)                                                           \
+X(ARRAY_INDEX_OOB)                                                           \
+X(STRING_INDEX_NAN)                                                          \
+X(STRING_INDEX_OOB)                                                          \
+X(TYPE_UNINDEXABLE)                                                          \
+X(PARSE_TOO_MANY_PARAMS)                                                     \
+X(PARSE_TOO_MANY_ARGS)                                                       \
+X(PARSE_DEFAULT_PARAM_ORDER)                                                 \
+X(PARSE_BREAK_OUTSIDE_LOOP)                                                  \
+X(PARSE_CONTINUE_OUTSIDE_LOOP)                                               \
+X(PARSE_RETURN_OUTSIDE_FUNC)                                                 \
+X(PARSE_AWAIT_OUTSIDE_ASYNC)                                                 \
+X(PARSE_EXPECT_EXPRESSION)                                                   \
+X(PARSE_INVALID_ASSIGN_TARGET)                                               \
+X(ASSIGN_CONST_ARRAY)                                                        \
+X(INDEX_ASSIGN_NOT_ARRAY)                                                    \
+X(MODIFY_CONST_ARRAY)                                                        \
+X(MODULE_NO_MEMBER)                                                          \
+X(UNDEF_PROPERTY)                                                            \
+X(NOT_GETTABLE)                                                              \
+X(NOT_SETTABLE)                                                              \
+X(NEW_NOT_CLASS)                                                             \
+X(INIT_ARG_MISMATCH)                                                         \
+X(NO_INIT_WITH_ARGS)                                                         \
+X(SUPER_OUTSIDE_METHOD)                                                      \
+X(NO_PARENT_CLASS)                                                           \
+X(PARENT_NO_INIT)                                                            \
+X(SUPER_ARG_MISMATCH)                                                        \
+X(CORO_NOT_FN)                                                               \
+X(CORO_NOT_ASYNC)                                                            \
+X(AWAIT_OUTSIDE_CORO)                                                        \
+X(SUPERCLASS_NOT_CLASS)                                                      \
+X(METHOD_NEEDS_OVERRIDE)                                                     \
+X(OVERRIDE_NOT_IN_PARENT)                                                    \
+X(OPERAND_NOT_NUMBER)                                                        \
+X(OPERANDS_NOT_NUMBERS)                                                      \
+X(UNEXPECTED_AMP)                                                            \
+X(UNEXPECTED_PIPE)                                                           \
+X(UNEXPECTED_CHAR)                                                           \
+X(UNTERMINATED_STRING)                                                       \
+X(INVALID_HEX_LITERAL)                                                       \
+X(INVALID_BYTE_SIZE)                                                         \
+X(INVALID_NUMBER_TRAILING_CHAR)                                              \
+X(CONSUME_VAR_NAME_AFTER_GLOBAL)                                             \
+X(CONSUME_EQUAL_AFTER_GLOBAL)                                                \
+X(CONSUME_SEMI_AFTER_GLOBAL)                                                 \
+X(CONSUME_VAR_NAME_AFTER_LET)                                                \
+X(CONSUME_SEMI_AFTER_LET)                                                    \
+X(CONSUME_VAR_NAME_AFTER_CONST)                                              \
+X(CONSUME_EQUAL_AFTER_CONST)                                                 \
+X(CONSUME_SEMI_AFTER_CONST)                                                  \
+X(CONSUME_VAR_NAME_AFTER_MUTEX)                                              \
+X(CONSUME_EQUAL_AFTER_MUTEX)                                                 \
+X(CONSUME_SEMI_AFTER_MUTEX)                                                  \
+X(CONSUME_FN_NAME)                                                           \
+X(CONSUME_LPAREN_AFTER_FN_NAME)                                              \
+X(CONSUME_PARAM_NAME)                                                        \
+X(CONSUME_RPAREN_AFTER_PARAMS)                                               \
+X(CONSUME_LBRACE_BEFORE_FN_BODY)                                             \
+X(CONSUME_SEMI_AFTER_BREAK)                                                  \
+X(CONSUME_SEMI_AFTER_CONTINUE)                                               \
+X(CONSUME_LPAREN_AFTER_IF)                                                   \
+X(CONSUME_RPAREN_AFTER_IF_COND)                                              \
+X(CONSUME_LPAREN_AFTER_WHILE)                                                \
+X(CONSUME_RPAREN_AFTER_WHILE_COND)                                           \
+X(CONSUME_LPAREN_AFTER_FOR)                                                  \
+X(CONSUME_SEMI_AFTER_FOR_COND)                                               \
+X(CONSUME_RPAREN_AFTER_FOR_CLAUSES)                                          \
+X(CONSUME_SEMI_AFTER_RETURN)                                                 \
+X(CONSUME_RBRACE_CLOSE_BLOCK)                                                \
+X(CONSUME_SEMI_AFTER_EXPR)                                                   \
+X(CONSUME_CLASS_NAME)                                                        \
+X(CONSUME_PARENT_CLASS_NAME)                                                 \
+X(CONSUME_LBRACE_BEFORE_CLASS_BODY)                                          \
+X(CONSUME_FUN_AFTER_OVERRIDE)                                                \
+X(CONSUME_FUN_IN_CLASS_BODY)                                                 \
+X(CONSUME_RBRACE_AFTER_CLASS_BODY)                                           \
+X(CONSUME_VAR_NAME_AFTER_FREE)                                               \
+X(CONSUME_SEMI_AFTER_FREE)                                                   \
+X(CONSUME_RPAREN_AFTER_ARGS)                                                 \
+X(CONSUME_RBRACKET_AFTER_INDEX)                                              \
+X(CONSUME_PROP_NAME_AFTER_DOT)                                               \
+X(CONSUME_RBRACKET_AFTER_ARRAY)                                              \
+X(CONSUME_RPAREN_AFTER_EXPR)                                                 \
+X(CONSUME_CLASS_NAME_AFTER_NEW)                                              \
+X(CONSUME_LPAREN_AFTER_CLASS_NAME)                                           \
+X(CONSUME_FN_NAME_AFTER_COROUTINE)                                           \
+X(CONSUME_RPAREN_GENERIC)                                                    \
+X(CONSUME_LPAREN_AFTER_SUPER)                                                \
+X(CONSUME_RPAREN_AFTER_SUPER_ARGS)                                           \
+X(CONSUME_FUN_AFTER_ASYNC)
+enum LOC_IDs { 
+#define X(name) name,
+LOC_ID_LIST 
+#undef X
+LOC_ID_COUNT }; void initLocale(); std::string LOC_Internal(int id, const std::vector<std::string> &args); std::string LOC_Internal(const std::string &key, const std::vector<std::string> &args); inline std::string LOC_ToString(const std::string &v) { return v; } inline std::string LOC_ToString(const char *v) { return v; } inline std::string LOC_ToString(bool v) { return v ? "true" : "false"; } template <typename T> std::string LOC_ToString(T &&val) { std::ostringstream oss; oss << val; return oss.str(); } template <typename... Args> std::string LOC(int id, Args &&...args) { return LOC_Internal(id, {LOC_ToString(std::forward<Args>(args))...}); } template <typename... Args> std::string LOC(const std::string &key, Args &&...args) { return LOC_Internal(key, {LOC_ToString(std::forward<Args>(args))...}); } struct NinCallable; struct NinArray; struct NinModule; struct NinClass; struct NinInstance; struct NinCoroutine; struct NinNative; using Value = std::variant<std::monostate, double, std::string, bool, uint8_t, std::shared_ptr<NinCallable>, std::shared_ptr<NinArray>, std::shared_ptr<NinClass>, std::shared_ptr<NinInstance>, std::shared_ptr<NinModule>, std::shared_ptr<NinCoroutine>, std::shared_ptr<NinNative>>; struct NinArray { std::vector<Value> elements; bool isConst = false; NinArray() = default; explicit NinArray(std::vector<Value> elems) : elements(std::move(elems)) {} }; struct NinCallable { virtual ~NinCallable() = default; virtual int arity() = 0; virtual Value call(std::vector<Value> args) = 0; virtual std::string name() = 0; virtual bool isVariadic() { return false; } virtual Value callWithKwargs(std::vector<Value> args, std::unordered_map<std::string, Value> kwargs) { if (!kwargs.empty()) throw std::runtime_error(LOC(FN_NOT_VARIADIC, name())); return call(std::move(args)); } }; struct NinModule { std::string sourcePath; std::unordered_map<std::string, Value> members; void *handle = nullptr; NinModule() = default; NinModule(std::string path, std::unordered_map<std::string, Value> members) : sourcePath(std::move(path)), members(std::move(members)) {} }; struct NinClass { std::string className; std::unordered_map<std::string, std::shared_ptr<NinCallable>> methods; std::shared_ptr<NinClass> superclass; explicit NinClass(std::string name, std::shared_ptr<NinClass> superclass = nullptr) : className(std::move(name)), superclass(std::move(superclass)) {} }; struct NinInstance { std::shared_ptr<NinClass> klass; std::unordered_map<std::string, Value> fields; explicit NinInstance(std::shared_ptr<NinClass> k) : klass(std::move(k)) {} }; struct NinCoroutine { enum class State { CREATED, RUNNING, DONE, PAUSED }; std::atomic<State> state{State::CREATED}; Value returnValue; std::mutex valueMutex; std::function<Value()> task; std::shared_ptr<void> platformHandle; explicit NinCoroutine(std::function<Value()> t) : task(std::move(t)) {} void setReturn(Value v) { std::lock_guard<std::mutex> lock(valueMutex); returnValue = std::move(v); } Value getReturn() { std::lock_guard<std::mutex> lock(valueMutex); return returnValue; } }; struct NinNative { std::string typeName; std::shared_ptr<void> data; std::function<Value(const std::string &field)> getField; std::function<void(const std::string &field, Value v)> setField; }; std::string getType(Value arg); bool checkArgs(Value arg, std::string type); std::string getVerString(); std::shared_ptr<NinArray> strSplit(std::string base, std::string denominator); std::string valueToString(const Value &val); bool isTruthy(const Value &val); bool isEqual(const Value &a, const Value &b); bool isInt(double d); 
