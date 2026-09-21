@@ -31,7 +31,7 @@ Value ImportFn::call(std::vector<Value> args) {
                                "'.");
     }
   } else {
-    path = std::filesystem::path(callerDir) / rel;
+    path = std::filesystem::path(callerDir) / (rel + ".nin");
   }
 
   std::string cacheKey =

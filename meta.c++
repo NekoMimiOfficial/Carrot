@@ -2,8 +2,8 @@
 
 const AppVer c_assemble_appver {
   0,
-  5,
-  1,
+  6,
+  0,
 
   "NekoMimi",
   "@GCC_VERSION@",

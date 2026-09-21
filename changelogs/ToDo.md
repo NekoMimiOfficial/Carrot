@@ -11,7 +11,6 @@
 # TODO: modules  
 - Networking with: `get`, `post`, `put`, `patch`, `delete`, `head`.  
 - (B) Advanced Arrays with: `array`, `array.get`, `array.set`, `array.len`.  
-- (B) String tools with: `to_str`, `split`, `find`, `replace`, `join`, `startswith`, `endswith`, `rmprefix`, `rmsuffix`.
 - (B) FS tools with: `get_homedir`, `get_confdir`, `get_cwd`.  
 - Math.  
 - JSON.  

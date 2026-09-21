@@ -1,15 +1,16 @@
 #include "utils/methods.h"
 #include "meta.h"
 #include "value.h"
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <variant>
 #include <vector>
-#include <cmath>
-#include <cstring>
-#include <iomanip>
 
 std::shared_ptr<NinArray> strSplit(std::string base, std::string delimiter) {
   std::vector<Value> segments;
@@ -35,6 +36,40 @@ std::string getVerString() {
              << c_assemble_appver.fix;
 
   return ver_string.str();
+}
+
+void strReplace(std::string &base, const std::string &old,
+                const std::string &new_w) {
+  if (old.empty())
+    return;
+
+  size_t start_pos = 0;
+  while ((start_pos = base.find(old, start_pos)) != std::string::npos) {
+    base.replace(start_pos, old.length(), new_w);
+
+    start_pos += new_w.length();
+  }
+}
+
+std::string strJoin(std::shared_ptr<NinArray> items, std::string delimiter) {
+  if (items->elements.empty())
+    return "";
+
+  size_t tsize = 0;
+  for (const auto &s : items->elements)
+    tsize += valueToString(s).size();
+  tsize += delimiter.size() * (items->elements.size() - 1);
+
+  std::string res;
+  res.reserve(tsize);
+
+  res += valueToString(items->elements[0]);
+  for (size_t i = 1; i < items->elements.size(); ++i) {
+    res += delimiter;
+    res += valueToString(items->elements[i]);
+  }
+
+  return res;
 }
 
 std::string valueToString(const Value &val) {

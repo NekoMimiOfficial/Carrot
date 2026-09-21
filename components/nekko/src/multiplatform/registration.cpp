@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "builtin.h"
+#include "builtins/cstrtools.h"
 #include <memory>
 
 void registerHandler(Interpreter *interp) {
@@ -12,11 +13,10 @@ void registerHandler(Interpreter *interp) {
   interp->registerBuiltinFn(std::make_shared<ExitFn>());
   interp->registerBuiltinFn(std::make_shared<SleepFn>());
 
-  interp->registerBuiltinFn(std::make_shared<StrFn>());
   interp->registerBuiltinFn(std::make_shared<NumFn>());
   interp->registerBuiltinFn(std::make_shared<TypeFn>());
   interp->registerBuiltinFn(std::make_shared<LenFn>());
   interp->registerBuiltinFn(std::make_shared<PushFn>());
   interp->registerBuiltinFn(std::make_shared<PopFn>());
-  interp->registerBuiltinFn(std::make_shared<StrSplitFn>());
+  interp->registerBuiltin("string", StringTools());
 }

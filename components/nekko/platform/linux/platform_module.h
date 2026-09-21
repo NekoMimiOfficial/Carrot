@@ -57,7 +57,7 @@ struct LoadModuleFn : NinCallable {
                                  "'.");
       }
     } else {
-      path = std::filesystem::path(callerDir) / rel;
+      path = std::filesystem::path(callerDir) / ("libcarrot_" + rel + ".so");
     }
 
     std::string cacheKey =

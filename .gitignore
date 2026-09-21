@@ -1,2 +1,4 @@
 build*
 discord_widget.sh
+thirdparty
+*.patch

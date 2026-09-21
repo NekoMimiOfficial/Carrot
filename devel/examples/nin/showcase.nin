@@ -116,7 +116,7 @@ class KittenShelter {
 }
 
 async fun fetchCatFact(url) {
-    return loadmodule("@libcarrot_net.so").get(url);
+    return loadmodule("@net").get(url);
 }
 
 let mochi = new Cat("Mochi", "Scottish Fold", true);
