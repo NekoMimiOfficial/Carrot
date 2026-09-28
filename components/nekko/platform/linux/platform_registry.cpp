@@ -8,4 +8,5 @@ void registerPlatformHandler(Interpreter *interp) {
   interp->registerBuiltinFn(std::make_shared<LinuxFn>()); // easteregg: keep this :3
   interp->registerBuiltinFn(std::make_shared<InputFn>());
   interp->registerBuiltinFn(std::make_shared<PrintFn>());
+  interp->registerBuiltinFn(std::make_shared<NootFn>());
 }

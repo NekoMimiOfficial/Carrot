@@ -106,5 +106,8 @@
 "CONSUME_RPAREN_GENERIC": "Just close it with a ')' already, nya!",
 "CONSUME_LPAREN_AFTER_SUPER": "Put an '(' right after 'super', bweh!",
 "CONSUME_RPAREN_AFTER_SUPER_ARGS": "Close with a ')' after your super arguments, nya!",
-"CONSUME_FUN_AFTER_ASYNC": "Carrie needs 'fun' right after 'async', nya!"
+"CONSUME_FUN_AFTER_ASYNC": "Carrie needs 'fun' right after 'async', nya!",
+"CONSUME_CAPTURE_NAME": "Carrie expected a variable name in the capture... qwq",
+"CONSUME_RBRACKET_AFTER_CAPTURE": "Put a ']' after your capture list, bweh!",
+"CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "Carrie wants an '(' right after the capture, nya!",
 }

@@ -1,9 +1,9 @@
 #include "coroutine.h"
 #include "interpreter.h"
-#include "nin_types.h"
-#include "value.h"
-#include "utils/methods.h"
 #include "lang.h"
+#include "nin_types.h"
+#include "utils/methods.h"
+#include "value.h"
 #include <cmath>
 #include <cstdint>
 #include <stdexcept>
@@ -125,7 +125,9 @@ Value Interpreter::visit(CallExpr &e) {
   auto fn = std::get<std::shared_ptr<NinCallable>>(callee);
 
   if (!fn->isVariadic() && (int)args.size() != fn->arity()) {
-    throw std::runtime_error(LOC(FN_NOT_ENOUGH_ARGS, fn->name(), std::to_string(fn->arity()), std::to_string(args.size()), std::to_string(e.paren.line)));
+    throw std::runtime_error(
+        LOC(FN_NOT_ENOUGH_ARGS, fn->name(), std::to_string(fn->arity()),
+            std::to_string(args.size()), std::to_string(e.paren.line)));
   }
 
   return fn->callWithKwargs(std::move(args), std::move(kwargs));
@@ -167,7 +169,8 @@ Value Interpreter::visit(IndexExpr &e) {
     return std::string(1, s[i]);
   }
 
-  throw std::runtime_error(LOC(TYPE_UNINDEXABLE, std::to_string(e.bracket.line)));
+  throw std::runtime_error(
+      LOC(TYPE_UNINDEXABLE, std::to_string(e.bracket.line)));
 }
 
 Value Interpreter::visit(IndexAssignExpr &e) {
@@ -254,7 +257,8 @@ Value Interpreter::visit(SetExpr &e) {
 Value Interpreter::visit(NewExpr &e) {
   Value classVal = evaluate(e.classExpr.get());
   if (!std::holds_alternative<std::shared_ptr<NinClass>>(classVal))
-    throw std::runtime_error(LOC(NEW_NOT_CLASS, std::to_string(e.keyword.line)));
+    throw std::runtime_error(
+        LOC(NEW_NOT_CLASS, std::to_string(e.keyword.line)));
 
   auto klass = std::get<std::shared_ptr<NinClass>>(classVal);
   auto inst = std::make_shared<NinInstance>(klass);
@@ -267,7 +271,9 @@ Value Interpreter::visit(NewExpr &e) {
   if (it != klass->methods.end()) {
     auto bound = makeBoundMethod(inst, it->second);
     if ((int)args.size() != bound->arity())
-      throw std::runtime_error(LOC(INIT_ARG_MISMATCH, klass->className, std::to_string(bound->arity()), std::to_string(args.size())));
+      throw std::runtime_error(LOC(INIT_ARG_MISMATCH, klass->className,
+                                   std::to_string(bound->arity()),
+                                   std::to_string(args.size())));
     bound->call(std::move(args));
   } else if (!args.empty()) {
     throw std::runtime_error(LOC(NO_INIT_WITH_ARGS, klass->className));
@@ -305,7 +311,7 @@ Value Interpreter::visit(CoroutineExpr &e) {
         bindFunctionArgs(this, capturedDecl, funcEnv, args, kwargs);
 
         try {
-          executeBlock(capturedDecl->body, funcEnv);
+          executeBlock(capturedDecl->getBody(), funcEnv);
         } catch (ReturnException &ret) {
           return ret.value;
         }
@@ -365,13 +371,48 @@ Value Interpreter::visit(SuperExpr &e) {
 
   auto bound = makeBoundMethod(inst, it->second);
   if ((int)args.size() != bound->arity())
-    throw std::runtime_error(LOC(SUPER_ARG_MISMATCH, std::to_string(bound->arity()), std::to_string(args.size())));
+    throw std::runtime_error(LOC(SUPER_ARG_MISMATCH,
+                                 std::to_string(bound->arity()),
+                                 std::to_string(args.size())));
   bound->call(std::move(args));
   return std::monostate{};
 }
 
 Value Interpreter::visit(AwaitExpr &e) {
   if (!insideCoroutine)
-    throw std::runtime_error(LOC(AWAIT_OUTSIDE_CORO, std::to_string(e.keyword.line)));
+    throw std::runtime_error(
+        LOC(AWAIT_OUTSIDE_CORO, std::to_string(e.keyword.line)));
   return evaluate(e.value.get());
+}
+
+Value Interpreter::visit(LambdaExpr &e) {
+  std::shared_ptr<Environment> lambdaClosure;
+
+  if (e.captureAll && e.captureAllByReference) {
+    lambdaClosure = env;
+  } else if (e.captureAll && !e.captureAllByReference) {
+    lambdaClosure = std::make_shared<Environment>(nullptr);
+    std::unordered_map<std::string, bool> seen;
+    for (Environment *scope = env.get(); scope; scope = scope->parent.get()) {
+      for (auto &[name, val] : scope->exportAll()) {
+        if (!seen[name]) {
+          lambdaClosure->define(name, val);
+          seen[name] = true;
+        }
+      }
+    }
+  } else {
+    lambdaClosure = std::make_shared<Environment>(globals);
+    for (auto &cap : e.captures) {
+      if (cap.byReference) {
+        lambdaClosure->defineAliasCapture(cap.name.lexeme, env,
+                                          cap.name.lexeme);
+      } else {
+        Value v = env->get(cap.name.lexeme);
+        lambdaClosure->defineCapture(cap.name.lexeme, v);
+      }
+    }
+  }
+
+  return std::make_shared<NinFunction>(&e, lambdaClosure, this);
 }

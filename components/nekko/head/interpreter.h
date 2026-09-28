@@ -86,6 +86,7 @@ private:
   Value visit(UnaryExpr &e) override;
   Value visit(BinaryExpr &e) override;
   Value visit(LogicalExpr &e) override;
+  Value visit(LambdaExpr &e) override;
   Value visit(CallExpr &e) override;
   Value visit(ArrayExpr &e) override;
   Value visit(IndexExpr &e) override;

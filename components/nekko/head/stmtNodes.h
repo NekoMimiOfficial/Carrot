@@ -49,7 +49,7 @@ struct ForStmt : StmtAcceptor<ForStmt> {
         increment(std::move(inc)), body(std::move(body)) {}
 };
 
-struct FunctionStmt : StmtAcceptor<FunctionStmt> {
+struct FunctionStmt : StmtAcceptor<FunctionStmt>, CallableDecl {
   Token name;
   std::vector<Token> params;
   std::vector<ExprPtr> defaults;
@@ -59,6 +59,11 @@ struct FunctionStmt : StmtAcceptor<FunctionStmt> {
                std::vector<ExprPtr> defaults, std::vector<StmtPtr> body)
       : name(std::move(name)), params(std::move(params)),
         defaults(std::move(defaults)), body(std::move(body)) {}
+
+  const std::vector<Token> &getParams() const override { return params; }
+  const std::vector<ExprPtr> &getDefaults() const override { return defaults; }
+  const std::vector<StmtPtr> &getBody() const override { return body; }
+  std::string getName() const override { return name.lexeme; }
 };
 
 struct ReturnStmt : StmtAcceptor<ReturnStmt> {

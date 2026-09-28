@@ -35,6 +35,14 @@ template <typename Derived> struct StmtAcceptor : Stmt {
   }
 };
 
+struct CallableDecl {
+  virtual ~CallableDecl() = default;
+  virtual const std::vector<Token> &getParams() const = 0;
+  virtual const std::vector<ExprPtr> &getDefaults() const = 0;
+  virtual const std::vector<StmtPtr> &getBody() const = 0;
+  virtual std::string getName() const = 0;
+};
+
 #include "exprNodes.h"
 #include "stmtNodes.h"
 

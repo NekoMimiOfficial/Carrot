@@ -106,5 +106,8 @@
   "CONSUME_RPAREN_GENERIC": "needs ')' wight about now nya~",
   "CONSUME_LPAREN_AFTER_SUPER": "needs '(' aftew 'super' nya~",
   "CONSUME_RPAREN_AFTER_SUPER_ARGS": "needs ')' aftew supew's awguments nya~",
-  "CONSUME_FUN_AFTER_ASYNC": "needs 'fun' aftew 'async' nya, async what~"
+  "CONSUME_FUN_AFTER_ASYNC": "needs 'fun' aftew 'async' nya, async what~",
+  "CONSUME_CAPTURE_NAME": "expects vawiabew name in the captuwur wist~",
+  "CONSUME_RBRACKET_AFTER_CAPTURE": "captuwur wist has to close the ']' nya!",
+  "CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "you should write '(' aftew the captuwur wist!",
 }

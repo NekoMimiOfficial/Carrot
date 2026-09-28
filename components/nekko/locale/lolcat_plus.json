@@ -106,5 +106,8 @@
   "CONSUME_RPAREN_GENERIC": "needs ')' rite bout now.",
   "CONSUME_LPAREN_AFTER_SUPER": "needs '(' after 'super'.",
   "CONSUME_RPAREN_AFTER_SUPER_ARGS": "needs ')' after super's argz.",
-  "CONSUME_FUN_AFTER_ASYNC": "needs 'fun' after 'async', async wut??"
+  "CONSUME_FUN_AFTER_ASYNC": "needs 'fun' after 'async', async wut??",
+  "CONSUME_CAPTURE_NAME": "hey codr!!! da captur needz itz variable namez, wher?",
+  "CONSUME_RBRACKET_AFTER_CAPTURE": "oh nyo! you forgir to cloz da captur... silly codr :3c",
+  "CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "nyaa! you catn't just captur my hart without giving me the cheezburgers... wher '('? :<",
 }

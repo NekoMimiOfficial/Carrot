@@ -45,11 +45,13 @@ private:
   ExprPtr factor();
   ExprPtr unary();
   ExprPtr call();
+  ExprPtr lambdaExpression();
   ExprPtr primary();
   ExprPtr newExpression();
 
   bool check(TokenType type);
   bool insideAsync = false;
+  bool looksLikeLambda(); // yes :3
   bool match(std::initializer_list<TokenType> types);
   bool checkNext(TokenType type);
   Token advance();

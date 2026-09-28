@@ -1,6 +1,6 @@
 #pragma once
-#include "value.h"
 #include "lang.h"
+#include "value.h"
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -15,19 +15,19 @@ public:
       : parent(std::move(parent)) {}
 
   void define(const std::string &name, Value value) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     ensureUndefinedLocked(name);
     slots[name] = Slot{std::move(value), false, false};
   }
 
   void defineConst(const std::string &name, Value value) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     ensureUndefinedLocked(name);
     slots[name] = Slot{std::move(value), true, false};
   }
 
   void defineGlobal(const std::string &name, Value value) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     ensureUndefinedLocked(name);
     slots[name] = Slot{std::move(value), false, true};
   }
@@ -36,18 +36,31 @@ public:
     defineGlobal(name, std::move(value));
   }
 
+  void defineAlias(const std::string &name, std::shared_ptr<Environment> target,
+                   const std::string &targetName) {
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
+    ensureUndefinedLocked(name);
+    Slot slot;
+    slot.aliasTarget = std::move(target);
+    slot.aliasName = targetName;
+    slots[name] = std::move(slot);
+  }
+
   Value get(const std::string &name) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     for (Environment *e = this; e; e = e->parent.get()) {
       auto it = e->slots.find(name);
-      if (it != e->slots.end())
+      if (it != e->slots.end()) {
+        if (it->second.aliasTarget)
+          return it->second.aliasTarget->get(it->second.aliasName);
         return it->second.value;
+      }
     }
     throw std::runtime_error(LOC(UDEF_VAR, name));
   }
 
   void assign(const std::string &name, Value value) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
 
     for (Environment *e = this; e; e = e->parent.get()) {
       auto it = e->slots.find(name);
@@ -57,10 +70,17 @@ public:
 
     for (Environment *e = this; e; e = e->parent.get()) {
       auto it = e->slots.find(name);
-      if (it != e->slots.end() && it->second.isGlobal) {
+      if (it == e->slots.end())
+        continue;
+      if (it->second.aliasTarget) {
+        it->second.aliasTarget->assign(it->second.aliasName, std::move(value));
+        return;
+      }
+      if (it->second.isGlobal) {
         it->second.value = std::move(value);
         return;
       }
+      break;
     }
 
     auto local = slots.find(name);
@@ -80,7 +100,7 @@ public:
   }
 
   void free(const std::string &name) {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     for (Environment *e = this; e; e = e->parent.get()) {
       if (e->slots.erase(name))
         return;
@@ -89,12 +109,12 @@ public:
   }
 
   bool hasLocal(const std::string &name) const {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     return slots.count(name) > 0;
   }
 
   bool isConst(const std::string &name) const {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     for (const Environment *e = this; e; e = e->parent.get()) {
       auto it = e->slots.find(name);
       if (it != e->slots.end())
@@ -103,8 +123,27 @@ public:
     return false;
   }
 
+  void defineCapture(const std::string &name, Value value) {
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
+    if (slots.count(name))
+      throw std::runtime_error(LOC(PREDEFINED_VAR, name));
+    slots[name] = Slot{std::move(value), false, false};
+  }
+
+  void defineAliasCapture(const std::string &name,
+                          std::shared_ptr<Environment> target,
+                          const std::string &targetName) {
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
+    if (slots.count(name))
+      throw std::runtime_error(LOC(PREDEFINED_VAR, name));
+    Slot slot;
+    slot.aliasTarget = std::move(target);
+    slot.aliasName = targetName;
+    slots[name] = std::move(slot);
+  }
+
   std::unordered_map<std::string, Value> exportAll() const {
-    std::lock_guard<std::mutex> lock(lockMutex());
+    std::lock_guard<std::recursive_mutex> lock(lockMutex());
     std::unordered_map<std::string, Value> out;
     for (auto &[k, slot] : slots)
       out[k] = slot.value;
@@ -116,10 +155,12 @@ private:
     Value value;
     bool isConst = false;
     bool isGlobal = false;
+    std::shared_ptr<Environment> aliasTarget;
+    std::string aliasName;
   };
 
-  static std::mutex &lockMutex() {
-    static std::mutex m;
+  static std::recursive_mutex &lockMutex() {
+    static std::recursive_mutex m;
     return m;
   }
 

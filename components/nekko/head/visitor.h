@@ -25,6 +25,7 @@ struct UnaryExpr;
 struct BinaryExpr;
 struct LogicalExpr;
 struct CallExpr;
+struct LambdaExpr;
 struct ArrayExpr;
 struct IndexExpr;
 struct IndexAssignExpr;
@@ -75,4 +76,5 @@ struct ExprVisitor {
   virtual Value visit(SuperExpr &e) = 0;
   virtual Value visit(CoroutineExpr &e) = 0;
   virtual Value visit(AwaitExpr &e) = 0;
+  virtual Value visit(LambdaExpr &e) = 0;
 };

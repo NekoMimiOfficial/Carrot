@@ -1,5 +1,5 @@
-#include "value.h"
 #include "utils/methods.h"
+#include "value.h"
 #include <iostream>
 #include <variant>
 #include <vector>
@@ -24,6 +24,16 @@ struct InputFn : NinCallable {
     std::string line;
     std::getline(std::cin, line);
     return line;
+  }
+};
+
+struct NootFn : NinCallable {
+  int arity() override { return 1; }
+  std::string name() override { return "noot"; }
+  Value call(std::vector<Value> args) override {
+    std::cout << valueToString(args[0]) << "\n";
+
+    return std::monostate();
   }
 };
 

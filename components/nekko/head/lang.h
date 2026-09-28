@@ -111,7 +111,10 @@
   X(CONSUME_RPAREN_GENERIC)                                                    \
   X(CONSUME_LPAREN_AFTER_SUPER)                                                \
   X(CONSUME_RPAREN_AFTER_SUPER_ARGS)                                           \
-  X(CONSUME_FUN_AFTER_ASYNC)
+  X(CONSUME_FUN_AFTER_ASYNC)                                                   \
+  X(CONSUME_CAPTURE_NAME)                                                      \
+  X(CONSUME_RBRACKET_AFTER_CAPTURE)                                            \
+  X(CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE)
 
 enum LOC_IDs {
 #define X(name) name,

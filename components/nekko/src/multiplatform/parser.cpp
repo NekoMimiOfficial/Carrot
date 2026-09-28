@@ -42,8 +42,7 @@ StmtPtr Parser::globalDeclaration() {
 }
 
 StmtPtr Parser::varDeclaration() {
-  Token name =
-      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_LET));
+  Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_LET));
 
   ExprPtr initializer = nullptr;
   if (match({TokenType::EQUAL})) {
@@ -92,7 +91,8 @@ StmtPtr Parser::funDeclaration() {
         seenDefault = true;
       } else {
         if (seenDefault)
-          throw std::runtime_error(LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
+          throw std::runtime_error(
+              LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
         defaults.push_back(nullptr);
       }
     } while (match({TokenType::COMMA}));
@@ -130,7 +130,8 @@ StmtPtr Parser::asyncFunctionDeclaration() {
         seenDefault = true;
       } else {
         if (seenDefault)
-          throw std::runtime_error(LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
+          throw std::runtime_error(
+              LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
         defaults.push_back(nullptr);
       }
     } while (match({TokenType::COMMA}));
@@ -154,6 +155,91 @@ StmtPtr Parser::asyncFunctionDeclaration() {
                                              std::move(bodyBlock->statements));
 }
 
+bool Parser::looksLikeLambda() {
+  int i = current + 1;
+  int depth = 1;
+  while (i < (int)tokens.size() && depth > 0) {
+    TokenType t = tokens[i].type;
+    if (t == TokenType::LBRACKET) {
+      depth++;
+    } else if (t == TokenType::RBRACKET) {
+      depth--;
+      if (depth == 0)
+        break;
+    } else if (t != TokenType::COMMA && t != TokenType::IDENTIFIER &&
+               t != TokenType::AMP && t != TokenType::EQUAL) {
+      return false;
+    }
+    i++;
+  }
+  if (i >= (int)tokens.size() || tokens[i].type != TokenType::RBRACKET)
+    return false;
+  int next = i + 1;
+  return next < (int)tokens.size() && tokens[next].type == TokenType::LPAREN;
+}
+
+ExprPtr Parser::lambdaExpression() {
+  Token keyword = advance();
+
+  bool captureAll = false;
+  bool captureAllByReference = false;
+  std::vector<CaptureItem> captures;
+
+  if (check(TokenType::AMP) && checkNext(TokenType::RBRACKET)) {
+    advance();
+    captureAll = true;
+    captureAllByReference = true;
+  } else if (check(TokenType::EQUAL) && checkNext(TokenType::RBRACKET)) {
+    advance();
+    captureAll = true;
+    captureAllByReference = false;
+  } else if (!check(TokenType::RBRACKET)) {
+    do {
+      bool byRef = match({TokenType::AMP});
+      Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_CAPTURE_NAME));
+      captures.push_back(CaptureItem{name, byRef});
+    } while (match({TokenType::COMMA}));
+  }
+
+  consume(TokenType::RBRACKET, LOC(CONSUME_RBRACKET_AFTER_CAPTURE));
+  consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE));
+
+  std::vector<Token> params;
+  std::vector<ExprPtr> defaults;
+  bool seenDefault = false;
+  if (!check(TokenType::RPAREN)) {
+    do {
+      Token param = consume(TokenType::IDENTIFIER, LOC(CONSUME_PARAM_NAME));
+      params.push_back(param);
+
+      if (match({TokenType::EQUAL})) {
+        defaults.push_back(expression());
+        seenDefault = true;
+      } else {
+        if (seenDefault)
+          throw std::runtime_error(
+              LOC(PARSE_DEFAULT_PARAM_ORDER, param.lexeme));
+        defaults.push_back(nullptr);
+      }
+    } while (match({TokenType::COMMA}));
+  }
+  consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_PARAMS));
+  consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_BEFORE_FN_BODY));
+
+  int prevLoopDepth = loopDepth;
+  loopDepth = 0;
+  funcDepth++;
+  auto bodyBlock =
+      std::unique_ptr<BlockStmt>(static_cast<BlockStmt *>(block().release()));
+  funcDepth--;
+  loopDepth = prevLoopDepth;
+
+  return std::make_unique<LambdaExpr>(
+      std::move(keyword), captureAll, captureAllByReference,
+      std::move(captures), std::move(params), std::move(defaults),
+      std::move(bodyBlock->statements));
+}
+
 StmtPtr Parser::statement() {
   if (match({TokenType::IF}))
     return ifStatement();
@@ -170,14 +256,16 @@ StmtPtr Parser::statement() {
 
   if (peek().lexeme == "break") {
     if (loopDepth == 0)
-      throw std::runtime_error(LOC(PARSE_BREAK_OUTSIDE_LOOP, std::to_string(peek().line)));
+      throw std::runtime_error(
+          LOC(PARSE_BREAK_OUTSIDE_LOOP, std::to_string(peek().line)));
     advance();
     consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_BREAK));
     return std::make_unique<BreakStmt>();
   }
   if (peek().lexeme == "continue") {
     if (loopDepth == 0)
-      throw std::runtime_error(LOC(PARSE_CONTINUE_OUTSIDE_LOOP, std::to_string(peek().line)));
+      throw std::runtime_error(
+          LOC(PARSE_CONTINUE_OUTSIDE_LOOP, std::to_string(peek().line)));
     advance();
     consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_CONTINUE));
     return std::make_unique<ContinueStmt>();
@@ -246,7 +334,8 @@ StmtPtr Parser::forStatement() {
 StmtPtr Parser::returnStatement() {
   Token keyword = previous();
   if (funcDepth == 0)
-    throw std::runtime_error(LOC(PARSE_RETURN_OUTSIDE_FUNC, std::to_string(keyword.line)));
+    throw std::runtime_error(
+        LOC(PARSE_RETURN_OUTSIDE_FUNC, std::to_string(keyword.line)));
   ExprPtr value = nullptr;
   if (!check(TokenType::SEMICOLON)) {
     value = expression();
@@ -306,8 +395,7 @@ StmtPtr Parser::classDeclaration() {
 }
 
 StmtPtr Parser::freeStatement() {
-  Token name =
-      consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_FREE));
+  Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_FREE));
   consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_FREE));
   return std::make_unique<FreeStmt>(std::move(name));
 }
@@ -336,7 +424,8 @@ ExprPtr Parser::assignment() {
                                        std::move(value));
     }
 
-    throw std::runtime_error(LOC(PARSE_INVALID_ASSIGN_TARGET, std::to_string(previous().line)));
+    throw std::runtime_error(
+        LOC(PARSE_INVALID_ASSIGN_TARGET, std::to_string(previous().line)));
   }
 
   return expr;
@@ -488,7 +577,11 @@ ExprPtr Parser::primary() {
     return std::make_unique<VariableExpr>(previous());
   }
 
-  if (match({TokenType::LBRACKET})) {
+  if (check(TokenType::LBRACKET)) {
+    if (looksLikeLambda())
+      return lambdaExpression();
+
+    advance();
     std::vector<ExprPtr> elements;
     if (!check(TokenType::RBRACKET)) {
       do {
@@ -536,7 +629,8 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::COROUTINE_KW})) {
     Token kw = previous();
-    Token fnName = consume(TokenType::IDENTIFIER, LOC(CONSUME_FN_NAME_AFTER_COROUTINE));
+    Token fnName =
+        consume(TokenType::IDENTIFIER, LOC(CONSUME_FN_NAME_AFTER_COROUTINE));
     std::vector<ExprPtr> args;
     std::vector<std::pair<std::string, ExprPtr>> kwargs;
     if (!check(TokenType::RPAREN)) {
@@ -557,7 +651,8 @@ ExprPtr Parser::primary() {
 
   if (match({TokenType::AWAIT})) {
     if (!insideAsync)
-      throw std::runtime_error(LOC(PARSE_AWAIT_OUTSIDE_ASYNC, std::to_string(previous().line)));
+      throw std::runtime_error(
+          LOC(PARSE_AWAIT_OUTSIDE_ASYNC, std::to_string(previous().line)));
     Token kw = previous();
     ExprPtr val = call();
     return std::make_unique<AwaitExpr>(std::move(kw), std::move(val));
@@ -576,7 +671,8 @@ ExprPtr Parser::primary() {
     return std::make_unique<SuperExpr>(std::move(kw), std::move(args));
   }
 
-  throw std::runtime_error(LOC(PARSE_EXPECT_EXPRESSION, std::to_string(peek().line), peek().lexeme));
+  throw std::runtime_error(
+      LOC(PARSE_EXPECT_EXPRESSION, std::to_string(peek().line), peek().lexeme));
 }
 
 bool Parser::check(TokenType type) {

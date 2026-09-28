@@ -29,6 +29,7 @@ enum class TokenType {
   STAR,
   SLASH,
   PERCENT,
+  AMP,
 
   EQUAL_EQUAL,
   BANG_EQUAL,

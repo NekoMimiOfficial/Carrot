@@ -1,6 +1,6 @@
 #include "lexer.h"
-#include "value.h"
 #include "lang.h"
+#include "value.h"
 #include <algorithm>
 #include <cstdint>
 #include <stdexcept>
@@ -107,7 +107,7 @@ void Lexer::scanToken() {
     if (match('&'))
       addToken(TokenType::AND);
     else
-      throw std::runtime_error(LOC(UNEXPECTED_AMP, std::to_string(line)));
+      addToken(TokenType::AMP);
     break;
   case '|':
     if (match('|'))
@@ -156,7 +156,8 @@ void Lexer::scanToken() {
     } else if (isAlpha(c)) {
       scanIdentifier();
     } else {
-      throw std::runtime_error(LOC(UNEXPECTED_CHAR, std::string(1, c), std::to_string(line)));
+      throw std::runtime_error(
+          LOC(UNEXPECTED_CHAR, std::string(1, c), std::to_string(line)));
     }
     break;
   }
@@ -244,7 +245,9 @@ void Lexer::scanNumber() {
 
     while (isDigit(peek()) || isHexChar(peek())) {
       if ((current - start) > 3)
-        throw std::runtime_error(LOC(INVALID_BYTE_SIZE, std::to_string(current - start - 1), std::to_string(line)));
+        throw std::runtime_error(LOC(INVALID_BYTE_SIZE,
+                                     std::to_string(current - start - 1),
+                                     std::to_string(line)));
       advance();
     }
   } else if (peek() == '.' && isDigit(peekNext())) {
@@ -254,7 +257,8 @@ void Lexer::scanNumber() {
   }
 
   if (isAlpha(peek())) {
-    throw std::runtime_error(LOC(INVALID_NUMBER_TRAILING_CHAR, std::string(1, peek()), std::to_string(line)));
+    throw std::runtime_error(LOC(INVALID_NUMBER_TRAILING_CHAR,
+                                 std::string(1, peek()), std::to_string(line)));
   }
 
   std::string numStr = source.substr(start, current - start);

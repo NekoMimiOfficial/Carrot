@@ -106,5 +106,8 @@
 "CONSUME_RPAREN_GENERIC": "Expected ')'.",
 "CONSUME_LPAREN_AFTER_SUPER": "Expected '(' after 'super'.",
 "CONSUME_RPAREN_AFTER_SUPER_ARGS": "Expected ')' after super arguments.",
-"CONSUME_FUN_AFTER_ASYNC": "Expected 'fun' after 'async'."
+"CONSUME_FUN_AFTER_ASYNC": "Expected 'fun' after 'async'.",
+"CONSUME_CAPTURE_NAME": "Expected a variable name in the capture list.",
+"CONSUME_RBRACKET_AFTER_CAPTURE": "Expected ']' after the capture list.",
+"CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "Expected '(' after the capture list.",
 }

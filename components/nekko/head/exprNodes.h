@@ -56,6 +56,34 @@ struct CallExpr : ExprAcceptor<CallExpr> {
         arguments(std::move(arguments)), kwargs(std::move(kwargs)) {}
 };
 
+struct CaptureItem {
+  Token name;
+  bool byReference;
+};
+
+struct LambdaExpr : ExprAcceptor<LambdaExpr>, CallableDecl {
+  Token keyword;
+  bool captureAll;
+  bool captureAllByReference;
+  std::vector<CaptureItem> captures;
+  std::vector<Token> params;
+  std::vector<ExprPtr> defaults;
+  std::vector<StmtPtr> body;
+
+  LambdaExpr(Token keyword, bool captureAll, bool captureAllByReference,
+             std::vector<CaptureItem> captures, std::vector<Token> params,
+             std::vector<ExprPtr> defaults, std::vector<StmtPtr> body)
+      : keyword(std::move(keyword)), captureAll(captureAll),
+        captureAllByReference(captureAllByReference),
+        captures(std::move(captures)), params(std::move(params)),
+        defaults(std::move(defaults)), body(std::move(body)) {}
+
+  const std::vector<Token> &getParams() const override { return params; }
+  const std::vector<ExprPtr> &getDefaults() const override { return defaults; }
+  const std::vector<StmtPtr> &getBody() const override { return body; }
+  std::string getName() const override { return "<lambda>"; }
+};
+
 struct LogicalExpr : ExprAcceptor<LogicalExpr> {
   ExprPtr left;
   Token op;

@@ -1,8 +1,8 @@
 #pragma once
 #include "asset_store.h"
 #include "fs.h"
-#include "value.h"
 #include "interpreter.h"
+#include "value.h"
 #include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>
@@ -28,6 +28,13 @@ struct ModuleKeepAliveFn : NinCallable {
 
   int arity() override { return inner->arity(); }
   std::string name() override { return inner->name(); }
+  bool isVariadic() override { return inner->isVariadic(); }
+
+  Value callWithKwargs(std::vector<Value> args,
+                       std::unordered_map<std::string, Value> kwargs) override {
+    return inner->callWithKwargs(std::move(args), std::move(kwargs));
+  }
+
   Value call(std::vector<Value> args) override {
     return inner->call(std::move(args));
   }
