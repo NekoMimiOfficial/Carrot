@@ -1,0 +1,110 @@
+{
+  "request": [
+    "NinCallable",
+    9,
+    ["method", "url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP request with a specified method and target URL."
+  ],
+  "get": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP GET request to the target URL."
+  ],
+  "post": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP POST request with an optional body payload or JSON object."
+  ],
+  "put": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP PUT request with an optional body payload or JSON object."
+  ],
+  "delete": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP DELETE request to the target URL."
+  ],
+  "patch": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP PATCH request with an optional body payload or JSON object."
+  ],
+  "head": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP HEAD request to retrieve headers from the target URL."
+  ],
+  "options": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP OPTIONS request to query communication options for the target URL."
+  ],
+  "Session": [
+    "NinCallable",
+    0,
+    [],
+    "Create a new stateful Session object that persists cookies and headers across requests."
+  ],
+  "Response.raise_for_status": [
+    "NinCallable",
+    0,
+    [],
+    "Raise a runtime error if the HTTP response status code is 400 or higher."
+  ],
+  "Session.request": [
+    "NinCallable",
+    9,
+    ["method", "url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP request using the session's persistent connection state and headers."
+  ],
+  "Session.get": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP GET request using the session's persistent state."
+  ],
+  "Session.post": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP POST request using the session's persistent state."
+  ],
+  "Session.put": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP PUT request using the session's persistent state."
+  ],
+  "Session.delete": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP DELETE request using the session's persistent state."
+  ],
+  "Session.patch": [
+    "NinCallable",
+    8,
+    ["url", "kw::data", "kw::json", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP PATCH request using the session's persistent state."
+  ],
+  "Session.head": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP HEAD request using the session's persistent state."
+  ],
+  "Session.options": [
+    "NinCallable",
+    6,
+    ["url", "kw::params", "kw::headers", "kw::timeout", "kw::allow_redirects", "kw::verify"],
+    "Send an HTTP OPTIONS request using the session's persistent state."
+  ]
+}
