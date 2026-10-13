@@ -42,6 +42,10 @@ enum class TokenType {
 
   BANG,
 
+  TRY,
+  CATCH,
+  THROW,
+
   LPAREN,
   RPAREN,
   LBRACE,

@@ -6,6 +6,9 @@ let x = 5;
 print(x);
 ```
 
+> [!NOTE]
+> We have removed print, it's a Linux platform only function.  
+
 ## (Stage 0) the entrypoint  
 Everything starts in `main.cpp`. It reads your `.nin` file (or a line you typed into the REPL) into one big string, then hands that string off to a `Lexer`. This file also owns the actual `Interpreter` object, it lives right there in `main()`'s own scope so it gets cleaned up properly when the program ends (not as some sneaky global that outlives everything, we learned that lesson the hard way believe me qwq).  
 

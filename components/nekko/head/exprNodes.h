@@ -142,19 +142,24 @@ struct SetExpr : ExprAcceptor<SetExpr> {
 struct SuperExpr : ExprAcceptor<SuperExpr> {
   Token keyword;
   std::vector<ExprPtr> arguments;
+  std::vector<std::pair<std::string, ExprPtr>> kwargs;
 
-  SuperExpr(Token keyword, std::vector<ExprPtr> arguments)
-      : keyword(std::move(keyword)), arguments(std::move(arguments)) {}
+  SuperExpr(Token keyword, std::vector<ExprPtr> arguments,
+            std::vector<std::pair<std::string, ExprPtr>> kwargs)
+      : keyword(std::move(keyword)), arguments(std::move(arguments)),
+        kwargs(std::move(kwargs)) {}
 };
 
 struct NewExpr : ExprAcceptor<NewExpr> {
   Token keyword;
   ExprPtr classExpr;
   std::vector<ExprPtr> arguments;
+  std::vector<std::pair<std::string, ExprPtr>> kwargs;
 
-  NewExpr(Token keyword, ExprPtr classExpr, std::vector<ExprPtr> arguments)
+  NewExpr(Token keyword, ExprPtr classExpr, std::vector<ExprPtr> arguments,
+          std::vector<std::pair<std::string, ExprPtr>> kwargs)
       : keyword(std::move(keyword)), classExpr(std::move(classExpr)),
-        arguments(std::move(arguments)) {}
+        arguments(std::move(arguments)), kwargs(std::move(kwargs)) {}
 };
 
 struct ThisExpr : ExprAcceptor<ThisExpr> {

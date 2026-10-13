@@ -34,6 +34,8 @@ private:
   StmtPtr expressionStatement();
   StmtPtr classDeclaration();
   StmtPtr asyncFunctionDeclaration();
+  StmtPtr tryStatement();
+  StmtPtr throwStatement();
 
   ExprPtr expression();
   ExprPtr assignment();

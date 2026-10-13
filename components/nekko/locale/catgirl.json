@@ -110,4 +110,16 @@
   "CONSUME_CAPTURE_NAME": "expects vawiabew name in the captuwur wist~",
   "CONSUME_RBRACKET_AFTER_CAPTURE": "captuwur wist has to close the ']' nya!",
   "CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "you should write '(' aftew the captuwur wist!",
+  "UNCAUGHT_EXCEPTION": "eek!! uncaught {0}: {1} nya, it escaped wunaway~",
+  "UNCAUGHT_VALUE": "oh nyo! uncaught exception: {0} nya~ *sad purr*",
+  "CATCH_TYPE_NOT_CLASS": "type aftew ':' in a catch clause hasta be a cwass nya! (line {0})",
+  "EXCEPTION_RET_NOT_NUMBER": "an exception's 'ret' needs to be a numbew nya~",
+  "NATIVE_METHOD_UNBOUND": "'{0}' can onwy be cawwed on an instance nya, not by itsewf~",
+  "PARSE_TRY_WITHOUT_CATCH": "'try' needs at weast one 'catch' to save it nya! (line {0})",
+  "CONSUME_LBRACE_AFTER_TRY": "needs '{' aftew 'try' nya~",
+  "CONSUME_LPAREN_AFTER_CATCH": "needs '(' aftew 'catch' nya~",
+  "CONSUME_CATCH_VAR_NAME": "needs a vawiabew name for the caught exception nya~",
+  "CONSUME_RPAREN_AFTER_CATCH": "needs ')' aftew the catch vawiabew nya~",
+  "CONSUME_LBRACE_AFTER_CATCH": "needs '{' aftew the catch clause nya~",
+  "CONSUME_SEMI_AFTER_THROW": "needs ';' aftew the thwow value nya~"
 }

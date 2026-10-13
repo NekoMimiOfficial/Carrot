@@ -14,6 +14,8 @@ struct FunctionStmt;
 struct AsyncFunctionStmt;
 struct ReturnStmt;
 struct ClassStmt;
+struct TryStmt;
+struct ThrowStmt;
 struct FreeStmt;
 struct BreakStmt;
 struct ContinueStmt;
@@ -52,6 +54,8 @@ struct StmtVisitor {
   virtual void visit(AsyncFunctionStmt &s) = 0;
   virtual void visit(ReturnStmt &s) = 0;
   virtual void visit(ClassStmt &s) = 0;
+  virtual void visit(TryStmt &s) = 0;
+  virtual void visit(ThrowStmt &s) = 0;
   virtual void visit(FreeStmt &s) = 0;
   virtual void visit(BreakStmt &s) = 0;
   virtual void visit(ContinueStmt &s) = 0;

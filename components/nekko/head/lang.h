@@ -114,7 +114,19 @@
   X(CONSUME_FUN_AFTER_ASYNC)                                                   \
   X(CONSUME_CAPTURE_NAME)                                                      \
   X(CONSUME_RBRACKET_AFTER_CAPTURE)                                            \
-  X(CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE)
+  X(CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE)                                       \
+  X(UNCAUGHT_EXCEPTION)                                                        \
+  X(UNCAUGHT_VALUE)                                                            \
+  X(CATCH_TYPE_NOT_CLASS)                                                      \
+  X(EXCEPTION_RET_NOT_NUMBER)                                                  \
+  X(NATIVE_METHOD_UNBOUND)                                                     \
+  X(PARSE_TRY_WITHOUT_CATCH)                                                   \
+  X(CONSUME_LBRACE_AFTER_TRY)                                                  \
+  X(CONSUME_LPAREN_AFTER_CATCH)                                                \
+  X(CONSUME_CATCH_VAR_NAME)                                                    \
+  X(CONSUME_RPAREN_AFTER_CATCH)                                                \
+  X(CONSUME_LBRACE_AFTER_CATCH)                                                \
+  X(CONSUME_SEMI_AFTER_THROW)
 
 enum LOC_IDs {
 #define X(name) name,

@@ -87,6 +87,30 @@ struct ClassStmt : StmtAcceptor<ClassStmt> {
         overrides(std::move(overrides)), superclass(std::move(superclass)) {}
 };
 
+struct CatchClause {
+  Token name;
+  ExprPtr type;
+  StmtPtr body;
+};
+
+struct TryStmt : StmtAcceptor<TryStmt> {
+  Token keyword;
+  StmtPtr tryBlock;
+  std::vector<CatchClause> catches;
+
+  TryStmt(Token keyword, StmtPtr tryBlock, std::vector<CatchClause> catches)
+      : keyword(std::move(keyword)), tryBlock(std::move(tryBlock)),
+        catches(std::move(catches)) {}
+};
+
+struct ThrowStmt : StmtAcceptor<ThrowStmt> {
+  Token keyword;
+  ExprPtr value;
+
+  ThrowStmt(Token keyword, ExprPtr value)
+      : keyword(std::move(keyword)), value(std::move(value)) {}
+};
+
 struct GlobalDecl : StmtAcceptor<GlobalDecl> {
   Token name;
   ExprPtr initializer;

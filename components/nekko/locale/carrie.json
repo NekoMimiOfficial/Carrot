@@ -110,4 +110,16 @@
 "CONSUME_CAPTURE_NAME": "Carrie expected a variable name in the capture... qwq",
 "CONSUME_RBRACKET_AFTER_CAPTURE": "Put a ']' after your capture list, bweh!",
 "CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "Carrie wants an '(' right after the capture, nya!",
+"UNCAUGHT_EXCEPTION": "Waaah! Uncaught {0}: {1}, bweh!",
+"UNCAUGHT_VALUE": "Oh no! Uncaught exception: {0}, nya!",
+"CATCH_TYPE_NOT_CLASS": "Silly! The type after ':' in a catch clause has to be a real class, nya! (line {0})",
+"EXCEPTION_RET_NOT_NUMBER": "Bleh! An exception's 'ret' needs to be a proper number, bweh!",
+"NATIVE_METHOD_UNBOUND": "Eep! '{0}' can only be called on an instance, nya!",
+"PARSE_TRY_WITHOUT_CATCH": "Waaah! 'try' needs at least one 'catch' to hold onto it, bweh! (line {0})",
+"CONSUME_LBRACE_AFTER_TRY": "Carrie needs a '{' right after 'try', nya!",
+"CONSUME_LPAREN_AFTER_CATCH": "Put an '(' right after 'catch', bweh!",
+"CONSUME_CATCH_VAR_NAME": "Carrie needs a variable name for the caught exception, nya!",
+"CONSUME_RPAREN_AFTER_CATCH": "Close it with a ')' after the catch variable, bweh!",
+"CONSUME_LBRACE_AFTER_CATCH": "Open up a '{' after the catch clause, nya!",
+"CONSUME_SEMI_AFTER_THROW": "Add a ';' after your throw value, bweh!"
 }

@@ -5,5 +5,14 @@ The cmake config is very standard, before building make sure you have the depend
 You can now commence compiling, Our preferred method is running these subset of commands: `mkdir build && cd build && cmake .. && make -j12`  
 This will: make a `build` directory and switch to it, then create the necessary make files from the `CMakeLists.txt` file in the outer directory and finally make the project (the -j12 splits the compilation into 12 jobs, instead of 12 write in you CPU thread count, if you're unsure how many threads you have using -j4 is always a safe option and also keeping it as -j12 will work but it might make the compilation significantly slower)  
 
+## Can't you just tell me how to compile the CLI? qwq  
+Okay okay I hear ye...  
+For the CLI you'll need 1 external dependency and 2 components, you'll need `libreadline` and to compile `nekko` THEN `carrot`  
+- install `libreadline-dev` using you'r distro's package manager (or whatever your OS/IDE provides)  
+- cd into `components/nekko` and `mkdir build && cd build && cmake .. -DBUILD_SHARED=off && make -j12`  
+- cd into `components/carrot` and `mkdir build && cd build && cmake .. -DBUILD_SHARED=off && make -j12`  
+- congratulations you now are the proud owner of a `carrot` binary  
+
 > [!WARNING]  
 > If you're compiling a component that links against Nekko (like Carrot), remember that C++ doesn't have a stable ABI. Whenever you rebuild Nekko, you need to recopy the fresh `libnekko.a`/`libnekko.so` into that component's build folder and rebuild it too, Forgetting to do this will make you debug why it's segfaulting til you realize it at 3 am qwq.  
+> We follow SymVer so no breaking changes should occur on non major version updates.  

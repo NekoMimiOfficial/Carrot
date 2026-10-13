@@ -77,6 +77,16 @@ struct NinFunction : NinCallable {
   }
 };
 
+struct NinNativeMethod : NinCallable {
+  bool isVariadic() override { return true; }
+  Value call(std::vector<Value>) override {
+    throw std::runtime_error(LOC(NATIVE_METHOD_UNBOUND, name()));
+  }
+  virtual Value callBound(std::shared_ptr<NinInstance> self,
+                          std::vector<Value> args,
+                          std::unordered_map<std::string, Value> kwargs) = 0;
+};
+
 std::shared_ptr<NinCallable>
 makeBoundMethod(std::shared_ptr<NinInstance> inst,
                 std::shared_ptr<NinCallable> method);

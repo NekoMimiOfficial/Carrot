@@ -1,8 +1,8 @@
 #include "interpreter.h"
+#include "lang.h"
 #include "lexer.h"
 #include "meta.h"
 #include "parser.h"
-#include "lang.h"
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -14,6 +14,7 @@
 #include <vector>
 
 static bool hadError = false;
+static int exitCode = 1;
 
 void runSource(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
                const std::string &source, bool isRepl = false) {
@@ -35,6 +36,10 @@ void runSource(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
     } else {
       interpreter.interpret(statements);
     }
+  } catch (const NinThrow &t) {
+    std::cerr << "[Error] " << t.what() << "\n";
+    hadError = true;
+    exitCode = t.ret;
   } catch (const std::runtime_error &e) {
     std::cerr << "[Error] " << e.what() << "\n";
     hadError = true;
@@ -49,7 +54,7 @@ void runFile(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
   std::ifstream file(path);
   if (!file.is_open()) {
     std::cerr << "Could not open file: " << path << "\n";
-    std::exit(1);
+    std::exit(exitCode);
   }
 
   std::string dir = std::filesystem::path(path).parent_path().string();
@@ -62,7 +67,7 @@ void runFile(Interpreter &interpreter, std::vector<StmtPtr> &replAst,
   runSource(interpreter, replAst, ss.str());
 
   if (hadError)
-    std::exit(1);
+    std::exit(exitCode);
 }
 
 void runREPL(Interpreter &interpreter, std::vector<StmtPtr> &replAst,

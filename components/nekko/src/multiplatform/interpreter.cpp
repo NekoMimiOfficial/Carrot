@@ -1,10 +1,11 @@
 #include "interpreter.h"
 #include "builtin.h"
 #include "coroutine.h"
+#include "exceptions.h"
+#include "lang.h"
 #include "nin_types.h"
 #include "platform.h"
 #include "value.h"
-#include "lang.h"
 #include <cmath>
 
 extern thread_local bool insideCoroutine;
@@ -27,6 +28,7 @@ void Interpreter::reset(std::string gotSourceDir,
 
   registerHandler(this);
   registerPlatformHandler(this);
+  registerExceptionTypes(this);
 }
 
 Interpreter::Interpreter(std::string sourceDir,
@@ -35,7 +37,8 @@ Interpreter::Interpreter(std::string sourceDir,
 }
 
 void Interpreter::interpret(const std::vector<StmtPtr> &statements) {
-  for (const auto &stmt : statements) { // the cli/main runner should handle try catching
+  for (const auto &stmt :
+       statements) { // the cli/main runner should handle try catching
     execute(stmt.get());
   }
 }
@@ -55,6 +58,26 @@ void Interpreter::executeBlock(const std::vector<StmtPtr> &stmts,
   env = previous;
 }
 
+Value Interpreter::instantiate(std::shared_ptr<NinClass> klass,
+                               std::vector<Value> args,
+                               std::unordered_map<std::string, Value> kwargs) {
+  auto inst = std::make_shared<NinInstance>(klass);
+
+  auto it = klass->methods.find("init");
+  if (it != klass->methods.end()) {
+    auto bound = makeBoundMethod(inst, it->second);
+    if (!bound->isVariadic() && (int)args.size() != bound->arity())
+      throw std::runtime_error(LOC(INIT_ARG_MISMATCH, klass->className,
+                                   std::to_string(bound->arity()),
+                                   std::to_string(args.size())));
+    bound->callWithKwargs(std::move(args), std::move(kwargs));
+  } else if (!args.empty() || !kwargs.empty()) {
+    throw std::runtime_error(LOC(NO_INIT_WITH_ARGS, klass->className));
+  }
+
+  return inst;
+}
+
 std::shared_ptr<NinCallable>
 makeBoundMethod(std::shared_ptr<NinInstance> inst,
                 std::shared_ptr<NinCallable> method) {
@@ -67,17 +90,26 @@ makeBoundMethod(std::shared_ptr<NinInstance> inst,
 
     int arity() override { return inner->arity(); }
     std::string name() override { return inner->name(); }
+    bool isVariadic() override { return inner->isVariadic(); }
 
     Value call(std::vector<Value> args) override {
+      return callWithKwargs(std::move(args), {});
+    }
+
+    Value
+    callWithKwargs(std::vector<Value> args,
+                   std::unordered_map<std::string, Value> kwargs) override {
+      if (auto *nm = dynamic_cast<NinNativeMethod *>(inner.get()))
+        return nm->callBound(inst, std::move(args), std::move(kwargs));
+
       auto *fn = dynamic_cast<NinFunction *>(inner.get());
       if (!fn)
-        return inner->call(std::move(args));
+        return inner->callWithKwargs(std::move(args), std::move(kwargs));
 
       auto thisEnv = std::make_shared<Environment>(fn->closure);
       thisEnv->define("this", inst);
-
       NinFunction bound(fn->decl, thisEnv, fn->interp);
-      return bound.call(std::move(args));
+      return bound.callWithKwargs(std::move(args), std::move(kwargs));
     }
   };
   return std::make_shared<BoundMethod>(std::move(inst), std::move(method));
@@ -86,7 +118,8 @@ makeBoundMethod(std::shared_ptr<NinInstance> inst,
 void Interpreter::checkNumberOperand(const Token &op, const Value &val) {
   if (std::holds_alternative<double>(val))
     return;
-  throw std::runtime_error(LOC(OPERAND_NOT_NUMBER, op.lexeme, std::to_string(op.line)));
+  throw std::runtime_error(
+      LOC(OPERAND_NOT_NUMBER, op.lexeme, std::to_string(op.line)));
 }
 
 void Interpreter::checkNumberOperands(const Token &op, const Value &left,
@@ -94,7 +127,8 @@ void Interpreter::checkNumberOperands(const Token &op, const Value &left,
   if (std::holds_alternative<double>(left) &&
       std::holds_alternative<double>(right))
     return;
-  throw std::runtime_error(LOC(OPERANDS_NOT_NUMBERS, op.lexeme, std::to_string(op.line)));
+  throw std::runtime_error(
+      LOC(OPERANDS_NOT_NUMBERS, op.lexeme, std::to_string(op.line)));
 }
 
 Value Interpreter::getCachedModule(const std::string &key) {

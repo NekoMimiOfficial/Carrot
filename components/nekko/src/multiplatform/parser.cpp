@@ -32,6 +32,40 @@ StmtPtr Parser::declaration() {
   return statement();
 }
 
+StmtPtr Parser::tryStatement() {
+  Token keyword = previous();
+  consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_AFTER_TRY));
+  StmtPtr tryBlock = block();
+
+  std::vector<CatchClause> catches;
+  while (match({TokenType::CATCH})) {
+    consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_CATCH));
+    Token name = consume(TokenType::IDENTIFIER, LOC(CONSUME_CATCH_VAR_NAME));
+    ExprPtr type = nullptr;
+    if (match({TokenType::COLON}))
+      type = expression();
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_CATCH));
+    consume(TokenType::LBRACE, LOC(CONSUME_LBRACE_AFTER_CATCH));
+    StmtPtr body = block();
+    catches.push_back(
+        CatchClause{std::move(name), std::move(type), std::move(body)});
+  }
+
+  if (catches.empty())
+    throw std::runtime_error(
+        LOC(PARSE_TRY_WITHOUT_CATCH, std::to_string(keyword.line)));
+
+  return std::make_unique<TryStmt>(std::move(keyword), std::move(tryBlock),
+                                   std::move(catches));
+}
+
+StmtPtr Parser::throwStatement() {
+  Token keyword = previous();
+  ExprPtr value = expression();
+  consume(TokenType::SEMICOLON, LOC(CONSUME_SEMI_AFTER_THROW));
+  return std::make_unique<ThrowStmt>(std::move(keyword), std::move(value));
+}
+
 StmtPtr Parser::globalDeclaration() {
   Token name =
       consume(TokenType::IDENTIFIER, LOC(CONSUME_VAR_NAME_AFTER_GLOBAL));
@@ -245,6 +279,10 @@ StmtPtr Parser::statement() {
     return ifStatement();
   if (match({TokenType::WHILE}))
     return whileStatement();
+  if (match({TokenType::TRY}))
+    return tryStatement();
+  if (match({TokenType::THROW}))
+    return throwStatement();
   if (match({TokenType::FOR}))
     return forStatement();
   if (match({TokenType::RETURN}))
@@ -613,15 +651,22 @@ ExprPtr Parser::primary() {
 
     consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_CLASS_NAME));
     std::vector<ExprPtr> args;
+    std::vector<std::pair<std::string, ExprPtr>> kwargs;
     if (!check(TokenType::RPAREN)) {
       do {
-        args.push_back(expression());
+        if (check(TokenType::IDENTIFIER) && checkNext(TokenType::EQUAL)) {
+          Token kwName = advance();
+          advance();
+          kwargs.emplace_back(kwName.lexeme, expression());
+        } else {
+          args.push_back(expression());
+        }
       } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_ARGS));
 
     return std::make_unique<NewExpr>(std::move(kw), std::move(classRef),
-                                     std::move(args));
+                                     std::move(args), std::move(kwargs));
   }
 
   if (match({TokenType::THIS}))
@@ -662,13 +707,22 @@ ExprPtr Parser::primary() {
     Token kw = previous();
     consume(TokenType::LPAREN, LOC(CONSUME_LPAREN_AFTER_SUPER));
     std::vector<ExprPtr> args;
+    std::vector<std::pair<std::string, ExprPtr>> kwargs;
     if (!check(TokenType::RPAREN)) {
       do {
-        args.push_back(expression());
+        if (check(TokenType::IDENTIFIER) && checkNext(TokenType::EQUAL)) {
+          Token kwName = advance();
+          advance();
+          kwargs.emplace_back(kwName.lexeme, expression());
+        } else {
+          args.push_back(expression());
+        }
       } while (match({TokenType::COMMA}));
     }
-    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_SUPER_ARGS));
-    return std::make_unique<SuperExpr>(std::move(kw), std::move(args));
+    consume(TokenType::RPAREN, LOC(CONSUME_RPAREN_AFTER_ARGS));
+
+    return std::make_unique<SuperExpr>(std::move(kw), std::move(args),
+                                       std::move(kwargs));
   }
 
   throw std::runtime_error(

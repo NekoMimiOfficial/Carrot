@@ -133,8 +133,8 @@ Okay you made the types but what else? how do you get them into Carrot?
 You need to build a module with a C symbol called `carrot_module_init`  
 How to? fine let's go step by step!  
 first let's prep our directory, you'll need `carrot_module.h`, `CMakeLists.txt` and `mod.cpp`, you can add any other files as needed but these 3 are the main files you'll need, plus if you wish to publish you'll need to write a manual (`man.json`) and manifest (`manifest.json`) alongside a readme and liscense  
-for now let's copy the `carrot_module.h` and `CMakeLists.txt` from the hello world example folder into our working folder and create an empty `mod.cpp` file  
-you'll need to open the `CMakeLists.txt` file to change the project name, just make sure it's called `carrot_SOMETHING`, the "carrot_" is per convention  
+for now let's copy the `carrot_module.h` and `CMakeLists.txt` from the `components/module` folder into our working folder and create an empty `mod.cpp` file  
+you'll need to open the `CMakeLists.txt` file to change the project name, just make sure it's called `carrot_SOMETHING`, the "carrot_" is per convention and necessary for module loading  
 you can also add any dependencies you'd need in the cmake file  
 now we can start editing our `mod.cpp` file, include `carrot_module.h` and any necessary libraries then write your functions or classes/instances or natives, once you've got all the types you want to add define this:  
 ```cpp

@@ -17,7 +17,7 @@ What do the names refer to? simple!
 **Usagi** is the compiler.  
 
 # Important note for contributors and developers  
-All the docs and help you might need are contained within the `contrib` folder, please give that a read  
+All the docs and help you might need are contained within the `devel` and `devel/contrib` folder, please give that a read  
 If you still have any question do reach out so we can add it to the contrib folder <3  
 
 # Why is the entire project in one repo?  

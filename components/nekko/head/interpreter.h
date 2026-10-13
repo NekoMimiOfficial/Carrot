@@ -1,8 +1,8 @@
 #pragma once
 #include "ast.h"
 #include "environment.h"
-#include "value.h"
 #include "lang.h"
+#include "value.h"
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -13,8 +13,7 @@
 struct ReturnException : public std::runtime_error {
   Value value;
   explicit ReturnException(Value v)
-      : std::runtime_error(LOC(RET_EXCEPTION)),
-        value(std::move(v)) {}
+      : std::runtime_error(LOC(RET_EXCEPTION)), value(std::move(v)) {}
 };
 
 struct BreakException : std::runtime_error {
@@ -22,8 +21,14 @@ struct BreakException : std::runtime_error {
 };
 
 struct ContinueException : std::runtime_error {
-  ContinueException()
-      : std::runtime_error(LOC(CONTINUE_EXCEPTION)) {}
+  ContinueException() : std::runtime_error(LOC(CONTINUE_EXCEPTION)) {}
+};
+
+struct NinThrow : std::runtime_error {
+  Value value;
+  int ret;
+  NinThrow(Value v, const std::string &text, int retCode)
+      : std::runtime_error(text), value(std::move(v)), ret(retCode) {}
 };
 
 class Interpreter : public StmtVisitor, public ExprVisitor {
@@ -79,6 +84,8 @@ private:
   void visit(FreeStmt &s) override;
   void visit(BreakStmt &s) override;
   void visit(ContinueStmt &s) override;
+  void visit(TryStmt &s) override;
+  void visit(ThrowStmt &s) override;
 
   Value visit(LiteralExpr &e) override;
   Value visit(VariableExpr &e) override;
@@ -98,6 +105,8 @@ private:
   Value visit(SuperExpr &e) override;
   Value visit(CoroutineExpr &e) override;
   Value visit(AwaitExpr &e) override;
+  Value instantiate(std::shared_ptr<NinClass> klass, std::vector<Value> args,
+                    std::unordered_map<std::string, Value> kwargs);
 
   void checkNumberOperand(const Token &op, const Value &val);
   void checkNumberOperands(const Token &op, const Value &left,

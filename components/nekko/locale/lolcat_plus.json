@@ -110,4 +110,16 @@
   "CONSUME_CAPTURE_NAME": "hey codr!!! da captur needz itz variable namez, wher?",
   "CONSUME_RBRACKET_AFTER_CAPTURE": "oh nyo! you forgir to cloz da captur... silly codr :3c",
   "CONSUME_LPAREN_AFTER_LAMBDA_CAPTURE": "nyaa! you catn't just captur my hart without giving me the cheezburgers... wher '('? :<",
+  "UNCAUGHT_EXCEPTION": "uncaught {0}: {1}, oof.",
+  "UNCAUGHT_VALUE": "uncaught exception: {0}, yikes.",
+  "CATCH_TYPE_NOT_CLASS": "type after ':' in a catch clause gotta b a class, dis not one. (line {0})",
+  "EXCEPTION_RET_NOT_NUMBER": "an exception's 'ret' gotta b a numbr.",
+  "NATIVE_METHOD_UNBOUND": "'{0}' can only be called on an instance, no freeloaders.",
+  "PARSE_TRY_WITHOUT_CATCH": "'try' needs at least one 'catch' to back it up. (line {0})",
+  "CONSUME_LBRACE_AFTER_TRY": "needs '{' after 'try'.",
+  "CONSUME_LPAREN_AFTER_CATCH": "needs '(' after 'catch'.",
+  "CONSUME_CATCH_VAR_NAME": "needs a variable name for the caught exception.",
+  "CONSUME_RPAREN_AFTER_CATCH": "needs ')' after the catch variable.",
+  "CONSUME_LBRACE_AFTER_CATCH": "needs '{' after the catch clause.",
+  "CONSUME_SEMI_AFTER_THROW": "needs ';' after throw value."
 }

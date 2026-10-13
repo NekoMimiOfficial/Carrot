@@ -119,6 +119,9 @@ Value Interpreter::visit(CallExpr &e) {
   for (const auto &[kwName, kwExpr] : e.kwargs)
     kwargs[kwName] = evaluate(kwExpr.get());
 
+  if (auto *klass = std::get_if<std::shared_ptr<NinClass>>(&callee))
+    return instantiate(*klass, std::move(args), std::move(kwargs));
+
   if (!std::holds_alternative<std::shared_ptr<NinCallable>>(callee))
     throw std::runtime_error(LOC(EXPECT_FN, std::to_string(e.paren.line)));
 
@@ -260,26 +263,16 @@ Value Interpreter::visit(NewExpr &e) {
     throw std::runtime_error(
         LOC(NEW_NOT_CLASS, std::to_string(e.keyword.line)));
 
-  auto klass = std::get<std::shared_ptr<NinClass>>(classVal);
-  auto inst = std::make_shared<NinInstance>(klass);
-
   std::vector<Value> args;
   for (auto &arg : e.arguments)
     args.push_back(evaluate(arg.get()));
 
-  auto it = klass->methods.find("init");
-  if (it != klass->methods.end()) {
-    auto bound = makeBoundMethod(inst, it->second);
-    if ((int)args.size() != bound->arity())
-      throw std::runtime_error(LOC(INIT_ARG_MISMATCH, klass->className,
-                                   std::to_string(bound->arity()),
-                                   std::to_string(args.size())));
-    bound->call(std::move(args));
-  } else if (!args.empty()) {
-    throw std::runtime_error(LOC(NO_INIT_WITH_ARGS, klass->className));
-  }
+  std::unordered_map<std::string, Value> kwargs;
+  for (const auto &[kwName, kwExpr] : e.kwargs)
+    kwargs[kwName] = evaluate(kwExpr.get());
 
-  return inst;
+  return instantiate(std::get<std::shared_ptr<NinClass>>(classVal),
+                     std::move(args), std::move(kwargs));
 }
 
 Value Interpreter::visit(ThisExpr &e) { return env->get("this"); }
@@ -369,12 +362,16 @@ Value Interpreter::visit(SuperExpr &e) {
   for (auto &arg : e.arguments)
     args.push_back(evaluate(arg.get()));
 
+  std::unordered_map<std::string, Value> kwargs;
+  for (const auto &[kwName, kwExpr] : e.kwargs)
+    kwargs[kwName] = evaluate(kwExpr.get());
+
   auto bound = makeBoundMethod(inst, it->second);
-  if ((int)args.size() != bound->arity())
+  if (!bound->isVariadic() && (int)args.size() != bound->arity())
     throw std::runtime_error(LOC(SUPER_ARG_MISMATCH,
                                  std::to_string(bound->arity()),
                                  std::to_string(args.size())));
-  bound->call(std::move(args));
+  bound->callWithKwargs(std::move(args), std::move(kwargs));
   return std::monostate{};
 }
 

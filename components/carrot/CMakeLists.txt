@@ -22,7 +22,8 @@ if(BUILD_SHARED)
 endif()
 
 find_package(PkgConfig REQUIRED)
-find_library(NEKKO NAMES nekko PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libnekko.a/libnekko.so into the build dir for this to work
+# find_library(NEKKO NAMES nekko PATHS "${CMAKE_CURRENT_BINARY_DIR}") # you must drop libnekko.a/libnekko.so into the build dir for this to work
+find_library(NEKKO NAMES nekko PATHS "${CMAKE_CURRENT_BINARY_DIR}/../../nekko/build") # not anymore :D but make sure your nekko build dir is called "build" case-sensitive too qwq
 
 if (BUILD_LINUX)
   pkg_check_modules(READLINE REQUIRED readline)

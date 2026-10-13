@@ -1,8 +1,9 @@
+#include "exceptions.h"
 #include "interpreter.h"
-#include "nin_types.h"
-#include "value.h"
 #include "lang.h"
+#include "nin_types.h"
 #include "utils/methods.h"
+#include "value.h"
 #include <stdexcept>
 
 void Interpreter::visit(ExprStmt &s) { evaluate(s.expression.get()); }
@@ -133,6 +134,49 @@ void Interpreter::visit(ReturnStmt &s) {
   throw ReturnException(std::move(value));
 }
 
+void Interpreter::visit(ThrowStmt &s) {
+  Value v = evaluate(s.value.get());
+  throw NinThrow(v, exceptionText(v), exceptionRet(v));
+}
+
+void Interpreter::visit(TryStmt &s) {
+  Value thrown;
+  try {
+    execute(s.tryBlock.get());
+    return;
+  } catch (ReturnException &) {
+    throw;
+  } catch (BreakException &) {
+    throw;
+  } catch (ContinueException &) {
+    throw;
+  } catch (NinThrow &t) {
+    thrown = t.value;
+  } catch (const std::exception &err) {
+    thrown = makeRuntimeError(*this, err.what());
+  }
+
+  for (auto &clause : s.catches) {
+    if (clause.type) {
+      Value typeVal = evaluate(clause.type.get());
+      auto *klass = std::get_if<std::shared_ptr<NinClass>>(&typeVal);
+      if (!klass)
+        throw std::runtime_error(
+            LOC(CATCH_TYPE_NOT_CLASS, std::to_string(s.keyword.line)));
+      if (!isInstanceOf(thrown, *klass))
+        continue;
+    }
+
+    auto catchEnv = std::make_shared<Environment>(env);
+    catchEnv->define(clause.name.lexeme, thrown);
+    if (auto *block = dynamic_cast<BlockStmt *>(clause.body.get()))
+      executeBlock(block->statements, catchEnv);
+    return;
+  }
+
+  throw NinThrow(thrown, exceptionText(thrown), exceptionRet(thrown));
+}
+
 void Interpreter::visit(BreakStmt &s) { throw BreakException{}; }
 
 void Interpreter::visit(ContinueStmt &s) { throw ContinueException{}; }
@@ -169,7 +213,8 @@ void Interpreter::visit(ClassStmt &s) {
 
   for (auto &method : s.overrides) {
     if (!superclass || !superclass->methods.count(method->name.lexeme))
-      throw std::runtime_error(LOC(OVERRIDE_NOT_IN_PARENT, method->name.lexeme));
+      throw std::runtime_error(
+          LOC(OVERRIDE_NOT_IN_PARENT, method->name.lexeme));
     klass->methods[method->name.lexeme] =
         std::make_shared<NinFunction>(method.get(), env, this);
   }
